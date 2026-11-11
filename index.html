@@ -106,8 +106,13 @@ svg [style*="font-size:12px"]{font-size:12px!important}
 }
 #plan{flex:1 0 100%;background:#2e9d5f;color:#fff;border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.4}#plan.bad{background:#c62828}#plan b{font-size:16px}#plan .pl0{font-weight:700}
 .selbox{background:var(--ok);color:var(--okt);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px}.selbox.bad{background:var(--er);color:var(--ert)}
+header{padding:6px 10px;gap:6px;flex-wrap:wrap}header b{font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hbtn{display:flex;gap:6px}#hbtn button{min-height:36px;min-width:36px;padding:0 9px;font-size:15px}.bt{display:none;font-size:14px}@media(min-width:560px){.bt{display:inline}}
+#plan{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;padding:5px 10px;font-size:13px;line-height:1.3;border-radius:10px}#plan.x{display:block}#plan b{font-size:14px}
+#nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 12px 0;max-width:760px;margin:0 auto}#nav button{min-height:34px;padding:0 14px;border-radius:99px;white-space:nowrap;background:var(--card);color:var(--pr);border:1px solid var(--bd);font-size:14px}#nav .sos{background:#c62828;color:#fff;border-color:#c62828;font-weight:700}
+.card{scroll-margin-top:84px}
+@media print{#nav{display:none!important}}
 </style></head><body>
-<header><div><b id="hw">Weight —</b></div><div style="display:flex;gap:8px"><button id="thm" aria-label="Toggle dark mode">🌓</button><button onclick="printPage()">🖨 Print</button><button onclick="ov(1)">⚙ Expert settings</button></div><div id="plan" style="display:none"></div><nav id="nav"><button data-t="c0">Patient</button><button data-t="c1">Airway</button><button data-t="c2">Single agent</button><button data-t="c3">Dual agent</button><button data-t="c4">Dilution</button><button data-t="c5" class="sos">🚨 LAST</button></nav></header>
+<header><b id="hw">Weight —</b><div id="hbtn"><button id="thm" aria-label="Toggle dark mode">🌓</button><button onclick="printPage()" aria-label="Print">🖨<span class="bt"> Print</span></button><button onclick="ov(1)" aria-label="Expert settings">⚙️<span class="bt"> Expert settings</span></button></div><div id="plan" style="display:none" title="Tap to expand or collapse"></div></header><nav id="nav"><button data-t="c0">Patient</button><button data-t="c1">Airway</button><button data-t="c2">Single agent</button><button data-t="c3">Dual agent</button><button data-t="c4">Dilution</button><button data-t="c5" class="sos">🚨 LAST</button></nav>
 <main id="mn"><div class="pd" id="pd"></div><div class="pronly" id="planp"></div>
 <div class="card"><h2>🧑‍⚕️ 1. Patient <button class="chip" id="newpt" style="margin-left:auto;min-height:36px">New patient</button></h2>
 <div class="g"><div><label>Weight (kg)</label><input id="w" type="number" inputmode="decimal" placeholder="e.g. 70"></div>
@@ -155,7 +160,7 @@ svg [style*="font-size:12px"]{font-size:12px!important}
 <p><b>Lidocaine pool</b> = total mg/kg LBW (max mg cap). Airway lidocaine used reduces it and the remaining fraction scales every agent's dosing weight.</p>
 <p><b>Max volume</b> (ml) = weight × mg/kg ÷ mg/ml. <b>Dual agents:</b> V1/Max1 + V2/Max2 ≤ 1. <b>Dilution:</b> V_high = C_low·V_final/C_high. </p>
 <p><b>LAST lipid emulsion 20% (W = weight in kg), AAGBI 2010:</b> bolus = 1.5 × W ml over 1 min; infusion = 15 × W ml/h. After 5 min if still unstable: up to two repeat boluses of the same dose, 5 min apart (maximum three boluses in total), and the infusion doubles to 30 × W ml/h. Maximum cumulative dose = 12 × W ml. (The AAGBI sheet's 70 kg example is rounded to 100 ml and 1000 ml/h; the calculator uses exact per-kg figures.)</p>
-<p><b>LAST, ASRA 2020 checklist:</b> over 70 kg (strictly over): bolus ~100 ml over 2–3 min, then ~250 ml over 15–20 min (≈750–1000 ml/h). 70 kg or under: bolus ~1.5 × W ml over 2–3 min, infusion ~0.25 × W ml/min (= 15 × W ml/h; consider a pump below 40 kg). If still unstable: repeat the bolus and double the infusion (30 × W ml/h under 70 kg, ≈1500–2000 ml/h over 70 kg). No fixed repeat limit is stated. Continue lipid for ≥15 min once haemodynamically stable. Maximum lipid dose = 12 × W ml. Epinephrine: start ≤1 mcg/kg.</p>
+<p><b>LAST, ASRA 2020 checklist:</b> over 70 kg (strictly over): bolus ~100 ml over 2–3 min, then ~250 ml over 15–20 min (≈750–1000 ml/h). 70 kg or under: bolus ~1.5 × W ml (maximum 100 ml) over 2–3 min, infusion ~0.25 × W ml/min (= 15 × W ml/h; consider a pump below 40 kg). If still unstable: repeat the bolus and double the infusion (30 × W ml/h under 70 kg, ≈1500–2000 ml/h over 70 kg). No fixed repeat limit is stated. Continue lipid for ≥15 min once haemodynamically stable. Maximum lipid dose = 12 × W ml. Epinephrine: start ≤1 mcg/kg.</p>
 <p><b>Default limits</b> are commonly quoted reference values within UK practice. Verify against local guidance and edit as required.</p><p class="mu" style="border-top:1px solid var(--bd);padding-top:10px"><b>Disclaimer:</b> UI entirely vibecoded in Claude Sonnet 5.5, based on a functional excel based applet. This calculator has been stress tested and double checked for accuracy. For feedback or questions please contact Dr George Lui (<a href="mailto:george.lui@nhs.net">george.lui@nhs.net</a>)</p></details></div></div>
 <script>
 var D={lbw:"jan",bmi:30,blend:true,lidoCap:9,lidoMax:700,cpMg:5,cpN:10,bolus:1.5,inf:15,mult:2,cap:12};
@@ -212,7 +217,7 @@ smp.json(aiPrompt(t),{modelTier:"quick"}).then(function(r){var its=(r&&Array.isA
 
 function syncUI(){var g=$("s").value;[].forEach.call(document.querySelectorAll("#gseg button"),function(b){b.className=b.dataset.g==g?"a":""})}
 $("gseg").addEventListener("click",function(e){var g=e.target.dataset.g;if(!g)return;$("s").value=g;calc()});
-[].forEach.call(document.querySelectorAll("main>.card"),function(c,i){c.id="c"+i});[2,3,4].forEach(function(i){$("c"+i).classList.add("cl")});$("c4").classList.add("col");
+[].forEach.call(document.querySelectorAll("main>.card"),function(c,i){c.id="c"+i});[2,3,4].forEach(function(i){$("c"+i).classList.add("cl","col")});
 $("mn").addEventListener("click",function(e){var t=e.target.closest&&e.target.closest(".cl>h2");if(t)t.parentNode.classList.toggle("col")});
 $("nav").addEventListener("click",function(e){var t=e.target.dataset.t;if(!t)return;var c=$(t);c.classList.remove("col");c.scrollIntoView({behavior:"smooth",block:"start"})});
 $("newpt").onclick=function(e){e.stopPropagation();["w","h","age","at","am","u1","u2","p1","p2"].forEach(function(i){$(i).value=""});CH=null;TR=-1;WM="auto";st.ai=null;try{localStorage.removeItem("laPt")}catch(x){}calc()};
@@ -268,7 +273,8 @@ if(SEL&&st.M&&st.M[SEL]){a=st.M[SEL];var mx=fl(st.W*a.k/a.c,1);if(mx<1)bad=true;
 else if(CH&&st.ch&&CH.k==st.ch.a.id+"|"+st.ch.b.id){var c=st.ch,d=CH.src?1:dec,x1=fl(Math.min(CH.x,c.m1),d),y1=fl(Math.min(CH.y,c.m2),d);var fr=x1/c.m1+y1/c.m2;if(fr>1)bad=true;if(x1>0)pa.push('<b>'+x1+' ml</b> '+esc(c.a.name));if(y1>0)pa.push('<b>'+y1+' ml</b> '+esc(c.b.name));if(fr<0.8)pa.push('<b>'+fl(fr*100,0)+'%</b> of max dose used')}
 else if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual,f=q.u1/q.m1+q.u2/q.m2;if(f>=1)bad=true;if(q.u1)pa.push('<b>'+q.u1+' ml</b> '+esc(q.a.name)+' (given)');if(q.u2)pa.push('<b>'+q.u2+' ml</b> '+esc(q.b.name)+' (given)');pa.push(fl(f*100,0)+'% of max dose used');if(f<1)pa.push('<b>Remaining:</b> up to <b>'+fl((1-f)*q.m1,1)+' ml</b> '+esc(q.a.name)+' <u>or</u> <b>'+fl((1-f)*q.m2,1)+' ml</b> '+esc(q.b.name))}
 var h=pa.length?'<span class="pl0">Anaesthetic plan:</span> '+pa.join(', ')+(bad?' <b>\u26a0 exceeds maximum</b>':''):'';
-$("plan").style.display=h?"block":"none";$("plan").className=bad?"bad":"";$("plan").innerHTML=h;$("planp").className="pronly"+(bad?" bad":"");$("planp").innerHTML=h}
+$("plan").style.display=h?"":"none";$("plan").classList.toggle("bad",!!bad);$("plan").innerHTML=h;$("planp").className="pronly"+(bad?" bad":"");$("planp").innerHTML=h}
+$("plan").addEventListener("click",function(){this.classList.toggle("x")});
 function pick(k){if(k!="single")SEL=null;if(k=="used"||k=="single"){CH=null;TR=-1;$("p1").value="";$("p2").value=""}if(k=="chart")TR=-1;if(k!="used"){$("u1").value="";$("u2").value=""}}
 $("used").addEventListener("input",function(e){var t=e.target;if((t.id=="u1"||t.id=="u2")&&t.value!=="")pick("used")},true);
 $("used").addEventListener("click",function(e){var d=e.target.dataset;if(d.u&&d.n!="c")pick("used")},true);
@@ -300,7 +306,7 @@ if(a.g!=b.g)o+='<div class="alert e">Mismatched agents: these are different loca
 var t=V*b.c;if(st.W&&t>st.W*b.k)o+='<div class="alert e">Total dose ('+fl(t,0)+' mg) exceeds max for this patient ('+fl(st.W*b.k,0)+' mg).</div>'}$("kr").innerHTML=o}
 var LM="aagbi";try{LM=localStorage.getItem("laLm")||"aagbi"}catch(e){}
 function nb(n,u,l,d){return'<div><div class="d">'+l+'</div><div class="n">'+n+'</div><div class="u">'+u+'</div><div class="d">'+d+'</div></div>'}
-function lastData(w){var R=Math.round,as=LM=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf)};o.b=over?100:R(w*S.bolus);return o}
+function lastData(w){var R=Math.round,as=LM=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf)};o.b=over?100:as?Math.min(100,R(w*S.bolus)):R(w*S.bolus);return o}
 function lipid(){var w=st.P.w,as=LM=="asra",R=Math.round;$("lsA").className=as?"":"a";$("lsS").className=as?"a":"";$("imA").style.display=as?"none":"";$("imS").style.display=as?"":"none";
 $("lcap").textContent=as?"ASRA Local Anaesthetic Systemic Toxicity Checklist, v1.1 (2020).":"AAGBI Safety Guideline: Management of Severe Local Anaesthetic Toxicity (2010, archived).";
 if(!w){$("lr").innerHTML='<div class="alert e">Enter the patient\u2019s weight to calculate lipid doses.</div>';return}
@@ -310,7 +316,7 @@ if(!as){h='<div class="stg">IMMEDIATELY</div><div class="lt">'+nb(d.b,"ml","BOLU
 +'<div class="mx">MAXIMUM CUMULATIVE DOSE <b>'+d.cap+' ml</b> ('+S.cap+' ml/kg)</div><p class="mu">Repeat if cardiovascular stability is not restored or circulation deteriorates. Continue infusion until stable with adequate circulation, or maximum dose given.</p>'}
 else{var inf=d.over?nb("250","ml","INFUSE","over 15–20 min (≈750–1000 ml/h)"):nb(R(w*S.inf/60*10)/10,"ml/min","INFUSE","≈"+d.inf+" ml/h ("+S.inf/60+" ml/kg/min)"+(w<40?" · consider a pump":"")),
 dbl=d.over?nb("2× rate","","DOUBLE INFUSION","≈1500–2000 ml/h"):nb(d.dbl,"ml/h","DOUBLE INFUSION",S.inf*S.mult+" ml/kg/h");
-h='<div class="stg">LIPID EMULSION 20% ('+(d.over?"OVER":"UNDER")+' 70 KG)</div><div class="lt">'+nb(d.b,"ml","BOLUS",(d.over?"~100 ml":"~"+S.bolus+" ml/kg")+" over 2–3 min")+inf+'</div>'
+h='<div class="stg">LIPID EMULSION 20% ('+(d.over?"OVER":"UNDER")+' 70 KG)</div><div class="lt">'+nb(d.b,"ml","BOLUS",(d.over?"~100 ml":R(w*S.bolus)>100?"max 100 ml":"~"+S.bolus+" ml/kg")+" over 2–3 min")+inf+'</div>'
 +'<div class="stg">IF PATIENT REMAINS UNSTABLE</div><div class="lt">'+nb(d.b,"ml","REPEAT BOLUS","")+dbl+'</div>'
 +'<div class="mx">MAXIMUM LIPID DOSE <b>'+d.cap+' ml</b> ('+S.cap+' ml/kg)</div>'
 +'<ul class="lx"><li><b>Seizure:</b> ensure adequate airway. Benzodiazepine preferred. If only propofol is available, use low doses (e.g. 20 mg increments).</li><li><b>Arrhythmia / hypotension:</b> LAST resuscitation is different from standard ACLS. Epinephrine: smaller than normal dose preferred, start ≤1 mcg/kg (≤'+R(w)+' mcg).</li><li><b>AVOID:</b> local anaesthetics, beta-blockers, calcium channel blockers, vasopressin.</li><li><b>Stable:</b> continue lipid for ≥15 min once haemodynamically stable. Then OBSERVE: 2 h after seizure; 4–6 h after cardiovascular instability.</li></ul>'}
@@ -318,7 +324,9 @@ $("lr").innerHTML=h+'<p class="mu">Doses use actual body weight ('+w+' kg). Cons
 $("lseg").addEventListener("click",function(e){var m=e.target.dataset.lm;if(!m)return;LM=m;try{localStorage.setItem("laLm",m)}catch(x){}lipid()});
 function printPrep(){$("pd").textContent="Local anaesthetic dosing summary · printed "+new Date().toLocaleString("en-GB")+" · "+$("hw").textContent;$("ptr").innerHTML=TR>=0?$("trs").innerHTML:"";$("tiles").classList.toggle("nodot",!CH)}
 window.addEventListener("afterprint",function(){$("tiles").classList.remove("nodot")});
-function printPage(){try{window.print()}catch(e){alert("Printing is not available here. Use your browser menu to print or save as PDF.")}}
+function printPage(){var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.PrintPlugin,nat=C&&C.isNativePlatform&&C.isNativePlatform();
+if(nat){if(!P){alert("Printing needs the PrintPlugin added to the Android app.");return}try{window.dispatchEvent(new Event("beforeprint"))}catch(e){}P.print({name:"Anaesthetic plan"}).catch(function(e){alert("Could not open the print dialog: "+(e&&e.message||e))});return}
+try{window.print()}catch(e){alert("Printing is not available here. Use your browser menu to print or save as PDF.")}}
 window.addEventListener("beforeprint",function(){if(+$("u1").value||+$("u2").value)$("used").open=true;[].forEach.call(document.querySelectorAll(".cl.col"),function(c){c.classList.remove("col")});if(st.used>0)$("airwayd").open=true;$("pd").textContent="Local anaesthetic dosing summary · printed "+new Date().toLocaleString("en-GB");printPrep()});
 function copySummary(){var P=st.P,t="LOCAL ANAESTHETIC DOSING SUMMARY\nWeight "+P.w+" kg, Height "+P.h+" m, BMI "+fl(P.bmi,1)+", LBW "+fl(P.lbw,1)+" kg ("+S.lbw+")\nDosing weight: "+fl(P.wt,1)+" kg ("+P.mode+")\nAirway lidocaine used: "+fl(st.used,0)+" mg (pool "+fl(st.pool,0)+" mg)\n";
 (st.en||[]).forEach(function(a){t+=a.name+": max "+fl(st.W*a.k/a.c,1)+" ml\n"});if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual;t+="Used: "+q.u1+" ml "+q.a.name+" + "+q.u2+" ml "+q.b.name+" ("+fl((q.u1/q.m1+q.u2/q.m2)*100,0)+"% of limit)\n"}
