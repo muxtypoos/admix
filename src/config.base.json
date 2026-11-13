@@ -1,0 +1,198 @@
+{
+ "_comment": "Core defaults. Every organisation inherits this and overrides only what it needs in orgs/<id>/config.json (objects merge; arrays such as `agents` are replaced).",
+ "storagePrefix": "la",
+ "org": {
+  "id": "base",
+  "name": "Admix",
+  "title": "Admix - Local Anaesthetic Calculator",
+  "contactName": "",
+  "contactEmail": ""
+ },
+ "theme": {
+  "primary": "#0b6bcb",
+  "primaryDark": "#5aa7ff"
+ },
+ "defaults": {
+  "neoRed": 0,
+  "lbw": "jan",
+  "lbwP": "peters",
+  "pc": "c98",
+  "bmi": 30,
+  "blend": true,
+  "lidoCap": 9,
+  "lidoMax": 700,
+  "cpMg": 5,
+  "cpN": 10,
+  "bolus": 1.5,
+  "inf": 15,
+  "mult": 2,
+  "cap": 12
+ },
+ "agents": [
+  {
+   "id": "lp1",
+   "name": "1% Lidocaine (Plain)",
+   "mgPerMl": 10,
+   "maxMgPerKg": 3,
+   "group": "lP",
+   "enabled": true
+  },
+  {
+   "id": "la1",
+   "name": "1% Lidocaine with Adrenaline",
+   "mgPerMl": 10,
+   "maxMgPerKg": 7,
+   "group": "lA",
+   "enabled": true
+  },
+  {
+   "id": "lp2",
+   "name": "2% Lidocaine (Plain)",
+   "mgPerMl": 20,
+   "maxMgPerKg": 3,
+   "group": "lP",
+   "enabled": true
+  },
+  {
+   "id": "la2",
+   "name": "2% Lidocaine with Adrenaline",
+   "mgPerMl": 20,
+   "maxMgPerKg": 7,
+   "group": "lA",
+   "enabled": true
+  },
+  {
+   "id": "b125",
+   "name": "0.125% Levobupivacaine / Bupivacaine",
+   "mgPerMl": 1.25,
+   "maxMgPerKg": 2,
+   "group": "bu",
+   "enabled": true
+  },
+  {
+   "id": "b25",
+   "name": "0.25% Levobupivacaine / Bupivacaine",
+   "mgPerMl": 2.5,
+   "maxMgPerKg": 2,
+   "group": "bu",
+   "enabled": true
+  },
+  {
+   "id": "b5",
+   "name": "0.5% Levobupivacaine / Bupivacaine",
+   "mgPerMl": 5,
+   "maxMgPerKg": 2,
+   "group": "bu",
+   "enabled": true
+  },
+  {
+   "id": "b75",
+   "name": "0.75% Levobupivacaine / Bupivacaine",
+   "mgPerMl": 7.5,
+   "maxMgPerKg": 2,
+   "group": "bu",
+   "enabled": true
+  },
+  {
+   "id": "r2",
+   "name": "0.2% Ropivacaine",
+   "mgPerMl": 2,
+   "maxMgPerKg": 3,
+   "group": "ro",
+   "enabled": true
+  },
+  {
+   "id": "r5",
+   "name": "0.5% Ropivacaine",
+   "mgPerMl": 5,
+   "maxMgPerKg": 3,
+   "group": "ro",
+   "enabled": true
+  },
+  {
+   "id": "r75",
+   "name": "0.75% Ropivacaine",
+   "mgPerMl": 7.5,
+   "maxMgPerKg": 3,
+   "group": "ro",
+   "enabled": true
+  },
+  {
+   "id": "p05",
+   "name": "0.5% Prilocaine",
+   "mgPerMl": 5,
+   "maxMgPerKg": 6,
+   "group": "pr",
+   "enabled": false
+  },
+  {
+   "id": "p1",
+   "name": "1% Prilocaine",
+   "mgPerMl": 10,
+   "maxMgPerKg": 6,
+   "group": "pr",
+   "enabled": false
+  },
+  {
+   "id": "p2",
+   "name": "2% Prilocaine",
+   "mgPerMl": 20,
+   "maxMgPerKg": 6,
+   "group": "pr",
+   "enabled": false
+  },
+  {
+   "id": "c1",
+   "name": "1% Chloroprocaine",
+   "mgPerMl": 10,
+   "maxMgPerKg": 11,
+   "group": "ch",
+   "enabled": false
+  },
+  {
+   "id": "c2",
+   "name": "2% Chloroprocaine",
+   "mgPerMl": 20,
+   "maxMgPerKg": 11,
+   "group": "ch",
+   "enabled": false
+  },
+  {
+   "id": "c3",
+   "name": "3% Chloroprocaine",
+   "mgPerMl": 30,
+   "maxMgPerKg": 11,
+   "group": "ch",
+   "enabled": false
+  }
+ ],
+ "last": {
+  "enabled": [
+   "aagbi",
+   "asra"
+  ],
+  "default": "aagbi",
+  "captions": {
+   "aagbi": "AAGBI Safety Guideline: Management of Severe Local Anaesthetic Toxicity (2010, archived).",
+   "asra": "ASRA Local Anaesthetic Systemic Toxicity Checklist, v1.1 (2020)."
+  },
+  "alt": {
+   "aagbi": "AAGBI 2010 severe local anaesthetic toxicity guideline",
+   "asra": "ASRA 2020 local anaesthetic systemic toxicity checklist"
+  },
+  "images": {
+   "aagbi": "src/assets/last-aagbi.jpg",
+   "asra": "src/assets/last-asra.jpg"
+  }
+ },
+ "text": {
+  "proteinBinding": "Consider reducing doses in low protein binding states: neonates and infants, pregnancy, malnutrition, low BMI or low albumin, liver or kidney disease, sepsis or critical illness, burns, acidosis.",
+  "footer": "Decision-support only. Verify all doses against local policy and clinical judgement. Intravascular injection can cause toxicity below maximum doses. Consider dose reduction in the elderly.",
+  "defaultLimits": "<b>Default limits</b> are commonly quoted reference values within UK practice. Verify against local guidance and edit as required.",
+  "defaultLimitsShort": "Default limits are commonly quoted reference values within UK practice.",
+  "neonate": "Protein binding is reduced in neonates; consider reducing dose by up to 50%. Verify doses against local guidance.",
+  "infant": "Consider reducing dose. Verify doses against local guidance.",
+  "airwayGuideline": "9 mg/kg is the DAS guideline maximum for awake tracheal intubation (ATI), capped at 700 mg. Airway lidocaine used is subtracted from this pool.",
+  "disclaimer": "<b>Disclaimer:</b> UI entirely vibecoded in Claude Sonnet 5.5, based on a functional excel based applet. This calculator has been stress tested and double checked for accuracy.{contact}"
+ }
+}

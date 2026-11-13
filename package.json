@@ -1,0 +1,15 @@
+{
+  "name": "admix",
+  "version": "0.3.0-beta",
+  "private": true,
+  "description": "Admix - Local Anaesthetic Calculator: one core app, one config per organisation",
+  "scripts": {
+    "pages": "node scripts/build.js --pages default",
+    "check": "node scripts/build.js --check",
+    "build": "node scripts/build.js --all",
+    "build:org": "node scripts/build.js --org",
+    "test": "node scripts/build.js --all && node tests/run.js"
+  },
+  "engines": { "node": ">=18" },
+  "devDependencies": { "playwright": "^1.40.0" }
+}

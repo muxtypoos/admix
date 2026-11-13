@@ -1,0 +1,60 @@
+{
+ "_comment": "EXAMPLE ONLY: values are illustrative, not clinical advice. Copy this folder to create a new organisation.",
+ "org": {
+  "id": "example-hospital",
+  "name": "Example Hospital NHS Trust",
+  "title": "Example Hospital - Local Anaesthetic Calculator",
+  "contactName": "Anaesthetic Governance Lead",
+  "contactEmail": "anaesthetics@example.invalid"
+ },
+ "theme": {
+  "primary": "#0a7d5a",
+  "primaryDark": "#4fd1a5"
+ },
+ "defaults": {
+  "lidoCap": 8,
+  "lidoMax": 600,
+  "neoRed": 25
+ },
+ "agentOverrides": {
+  "lp1": {
+   "maxMgPerKg": 3
+  },
+  "la1": {
+   "maxMgPerKg": 6
+  },
+  "lp2": {
+   "maxMgPerKg": 3
+  },
+  "la2": {
+   "maxMgPerKg": 6
+  },
+  "p1": {
+   "enabled": true
+  }
+ },
+ "removeAgents": [
+  "b75",
+  "r75"
+ ],
+ "addAgents": [
+  {
+   "id": "x1",
+   "name": "0.5% Mepivacaine (example)",
+   "mgPerMl": 5,
+   "maxMgPerKg": 4,
+   "group": "mp",
+   "enabled": true
+  }
+ ],
+ "last": {
+  "enabled": [
+   "asra"
+  ],
+  "default": "asra"
+ },
+ "text": {
+  "footer": "EXAMPLE ORGANISATION. Follow Example Hospital local policy. Verify all doses and use clinical judgement.",
+  "neonate": "Local policy: discuss neonatal doses with a senior anaesthetist."
+ }
+}

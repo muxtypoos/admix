@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en"><head>@@config-script@@<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>@@org.title@@</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#14202b;--mu:#5d6b78;--bd:#dde3e9;--pr:@@theme.primary@@;--ok:#e6f6ec;--okt:#15693a;--wa:#fff4d6;--wat:#8a5a00;--er:#fde8e8;--ert:#a11d1d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1519;--card:#18212a;--tx:#e8eef3;--mu:#97a5b2;--bd:#2b3743;--pr:@@theme.primaryDark@@;--ok:#12301f;--okt:#6fd49a;--wa:#3a2e0b;--wat:#f2c35b;--er:#3b1717;--ert:#ff8f8f}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1519;--card:#18212a;--tx:#e8eef3;--mu:#97a5b2;--bd:#2b3743;--pr:@@theme.primaryDark@@;--ok:#12301f;--okt:#6fd49a;--wa:#3a2e0b;--wat:#f2c35b;--er:#3b1717;--ert:#ff8f8f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--pr);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--pr);z-index:6}
+header b{font-size:15px}header small{display:block;opacity:.9;font-size:12px}
+button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:0 14px;cursor:pointer}
+header button{background:rgba(255,255,255,.18);color:#fff;border-color:transparent}
+main{max-width:760px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+h2{font-size:16px;margin:0 0 10px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
+input,select,textarea{width:100%;min-height:44px;font:inherit;border:1px solid var(--bd);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--tx)}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600;background:var(--ok);color:var(--okt)}
+.badge.w{background:var(--wa);color:var(--wat)}.badge.e{background:var(--er);color:var(--ert)}
+.alert{padding:10px 12px;border-radius:10px;margin-top:10px;font-size:14px;background:var(--wa);color:var(--wat)}.alert.e{background:var(--er);color:var(--ert);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mu);font-weight:600;font-size:12px}td,th{padding:8px 6px;border-bottom:1px solid var(--bd)}
+tr.w td{background:var(--wa)}tr.e td{background:var(--er);color:var(--ert)}.r{text-align:right}
+.big{font-size:22px;font-weight:700}.mu{color:var(--mu);font-size:13px}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;overflow:auto;padding:12px}.ov.on{display:block}
+.ov .card{max-width:620px;margin:20px auto}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button.a{background:var(--pr);color:#fff}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--bd)}.row>b{flex:1 1 150px}.row input,.row select{width:auto;flex:1 1 90px;min-width:0}.row input[type=checkbox]{flex:0 0 24px;width:24px;min-height:24px}.row .nm{flex:2 1 150px}.row small{color:var(--mu)}
+details{margin-top:10px;font-size:14px}summary{cursor:pointer;min-height:36px}
+svg text{fill:var(--mu);font-size:10px}.gl{stroke:var(--bd);stroke-width:1}.ar{fill:var(--ok);opacity:.8}.ln{stroke:var(--ert);stroke-width:2.5}.ax{stroke:var(--mu)}
+svg text{font-size:11px}svg .ht{paint-order:stroke;stroke:var(--card);stroke-width:3px}.rg{opacity:.45;font-size:12px;font-weight:700}.gl{stroke-dasharray:3 3}
+.pair{display:flex;align-items:stretch;gap:6px}.pc{flex:1;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:8px;text-align:center}.pn{font-size:22px;font-weight:700}.pl{font-size:12px;color:var(--mu);line-height:1.25}.pp{align-self:center;font-weight:700;color:var(--mu)}
+.meter{height:10px;border-radius:99px;background:var(--bd);overflow:hidden;margin:6px 0 4px}.meter i{display:block;height:100%}.ur{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ur input{flex:1 1 90px}.chip{min-height:40px;padding:0 12px}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:99px;overflow:hidden}.seg button{border:0;border-radius:0;min-height:36px;padding:0 16px;background:var(--card)}.seg button.a{background:var(--pr);color:#fff}.seg button:disabled{opacity:.4}
+.ed{display:flex;justify-content:center;align-items:baseline;gap:4px}.pc input.pn{width:100%;max-width:110px;min-height:42px;padding:2px 4px;text-align:center;font-size:22px;font-weight:700;background:transparent;border:0;border-bottom:2px dashed var(--mu);border-radius:0}.pc input.pn:focus{outline:0;border-bottom-color:var(--pr)}.ed span{color:var(--mu)}
+.last{border:3px solid #c62828;padding:0;overflow:hidden}.lh{background:#c62828;color:#fff;padding:12px 14px}.lh b{font-size:17px;letter-spacing:.3px}.la{margin-top:6px;font-size:14px;font-weight:600}.lb{padding:12px 14px}
+.lh .seg{border-color:#fff}.lh .seg button{background:transparent;color:#fff;min-height:36px}.lh .seg button.a{background:#fff;color:#c62828;font-weight:700}
+.stg{font-weight:800;color:#c62828;font-size:13px;letter-spacing:.9px;margin:14px 0 6px}.stg:first-child{margin-top:0}.lt{display:flex;gap:8px}.lt>div{flex:1;border-radius:12px;background:var(--er);color:var(--ert);padding:10px 6px;text-align:center}
+.lt .n{font-size:34px;font-weight:800;line-height:1.05}.lt .u{font-size:14px;font-weight:700}.lt .d{font-size:12px;opacity:.9}.mx{margin-top:12px;padding:10px;border-radius:10px;background:#c62828;color:#fff;text-align:center;font-size:15px}.mx b{font-size:20px}
+.lx{margin:10px 0 0;padding:0;list-style:none;font-size:14px}.lx li{padding:8px 0;border-top:1px solid var(--bd)}.lx b{color:var(--ert)}
+
+.pd{display:none;font-weight:700;margin-bottom:8px}
+.stamp{opacity:.7;white-space:nowrap;float:right;margin-left:8px;font-size:11px}@media print{.stamp{font-size:7px}}
+@media print{:root:root:root:root{color-scheme:light;--bg:#fff;--card:#fff;--tx:#000;--mu:#444;--bd:#ccc;--ok:#e6f6ec;--okt:#15693a;--wa:#fff4d6;--wat:#8a5a00;--er:#fde8e8;--ert:#a11d1d;--pr:@@theme.primary@@;padding:0}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body::before,header,.ov,#chk,.chip,#wauto,#lseg,.seg button:disabled{display:none!important}.pd{display:block}main{max-width:none;padding:0}.card{break-inside:avoid;box-shadow:none}.last{break-inside:auto}details:not([open]) table{display:table}img{max-width:100%}}
+.ad{margin:0}.ad>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;min-height:44px}.ad>summary::-webkit-details-marker{display:none}.ad>summary h2{margin:0}.ad>summary span{flex:1;text-align:right}.ad>summary::after{content:"▸";font-size:20px;color:var(--pr)}.ad[open]>summary::after{content:"▾"}.ad[open]>summary{margin-bottom:10px}
+.rt{width:100%;max-width:440px;margin:10px auto;border-collapse:collapse}.rt th{text-align:center;font-size:12px;color:var(--mu);vertical-align:bottom;padding:6px 4px}.rt td{text-align:center;padding:9px 4px;border-bottom:1px solid var(--bd);font-size:16px}.rt tr:nth-child(even) td{background:var(--bg)}.rt tr.hl td{background:var(--ok);color:var(--okt);font-weight:700}.rt .pp{color:var(--mu);width:26px}
+.rt tr[data-i]{cursor:pointer}.rt tr[data-i]:hover td{filter:brightness(.96)}
+
+header{flex-wrap:wrap;background:linear-gradient(135deg,@@theme.primary@@,#2b8ae8)}:root[data-theme="dark"] header,:root:not([data-theme="light"]) header{background:linear-gradient(135deg,#1b4f86,#2a6db5)}
+#nav{flex:1 0 100%;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}#nav::-webkit-scrollbar{display:none}#nav button{min-height:34px;padding:0 14px;border-radius:99px;white-space:nowrap;background:rgba(255,255,255,.2);color:#fff;border:0;font-size:14px}#nav .sos{background:#c62828;font-weight:700}
+.card{border-radius:18px;padding:16px;box-shadow:0 2px 12px rgba(16,40,64,.08);scroll-margin-top:120px;animation:fi .25s ease}@keyframes fi{from{opacity:0;transform:translateY(5px)}}@media(prefers-reduced-motion:reduce){.card{animation:none}}
+h2{display:flex;align-items:center;gap:8px;font-size:17px}
+input,select,textarea{border-radius:12px;min-height:48px;font-size:17px}input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid color-mix(in srgb,var(--pr) 40%,transparent);border-color:var(--pr)}
+#gseg{display:flex}#gseg button{flex:1;min-height:48px}#gseg{width:100%}
+.cl>h2{cursor:pointer;margin-bottom:0}.cl>h2::after{content:"▾";margin-left:auto;color:var(--pr)}.cl.col>h2::after{content:"▸"}.cl.col>*:not(h2){display:none}.cl>h2+*{margin-top:10px}
+.pill{background:var(--ok);color:var(--okt);padding:3px 11px;border-radius:99px;font-size:15px}tr.w .pill{background:var(--wa);color:var(--wat)}tr.e .pill{background:var(--er);color:var(--ert)}
+#tb td{padding:10px 6px}
+
+#tb td.sm,#tb th.sm{font-size:12px;font-weight:400;color:var(--mu);opacity:.75}
+details>summary,.cl>h2{min-height:48px}
+details>summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700}details>summary::-webkit-details-marker{display:none}
+details>summary::before,.cl>h2::before{content:"▸";display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--bg);color:var(--pr);font-size:15px;flex:none;transition:transform .15s}
+details[open]>summary::before,.cl:not(.col)>h2::before{transform:rotate(90deg)}
+.cl>h2::after,.cl.col>h2::after,.ad>summary::after,.ad[open]>summary::after{content:none}.cl>h2{gap:10px}details>summary:active,.cl>h2:active{opacity:.7}
+@media print{details>summary::before,.cl>h2::before{display:none}}
+#tb tr[data-a]{cursor:pointer}#tb tr.hl td{background:var(--ok);color:var(--okt)}#tb tr.hl .pill{background:var(--card)}
+.rt{table-layout:fixed}.rt td:nth-child(2),.rt th:nth-child(2){width:40px;padding-left:0;padding-right:0}
+.pronly{display:none}
+@page{size:A4;margin:8mm}
+@media print{
+html,body{height:auto}body{font:9.5px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff}
+main{max-width:none;padding:0;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"t t" "q q" "p d" "a d" "s d" "i l" "f f";gap:4px;align-items:start}
+.pd{grid-area:t;font-size:11px;font-weight:700;border-bottom:1px solid #888;padding-bottom:3px;margin:0}
+main>p.mu{grid-area:f;font-size:8px;margin:0}
+#c0{grid-area:p}#c1{grid-area:a}#c2{grid-area:s}#c3{grid-area:d}#c4{grid-area:i}#c5{grid-area:l}
+.card{box-shadow:none!important;border:1px solid #777;border-radius:4px;padding:4px 7px;margin:0;animation:none;break-inside:avoid;scroll-margin:0}
+h2,.cl>h2{font-size:11px;min-height:0;margin:0 0 3px}
+.card .mu,.card label{font-size:8.5px}.card p.mu:not(#pinfo):not(#rmline){display:none}#rmline{font-size:8.5px}
+input,select,textarea{min-height:0!important;height:auto;font-size:10px!important;padding:1px 3px;border:0!important;border-bottom:1px solid #999!important;border-radius:0;background:none!important;color:#000;-webkit-appearance:none;appearance:none;box-shadow:none;outline:0}
+input::placeholder,textarea::placeholder{color:transparent}textarea{resize:none}
+.pn,.big{font-size:14px!important}.pc input.pn{font-size:14px!important;max-width:60px}.lt .n{font-size:16px!important}
+td,th{padding:2px 4px!important;font-size:9px}.pill{padding:0 6px;font-size:9.5px}
+#cwb{display:none}.pronly{display:block}#ptr .alert{margin:4px 0 0}#tiles.nodot{display:none}#used:not([open]){display:none}
+.alert{padding:3px 6px;margin-top:4px;font-size:9px}
+#cwa{max-width:80mm;margin:0 auto}#cwa h2{margin-top:2px!important}
+.pair{gap:3px}.pc{padding:3px;border-radius:6px}.meter{height:6px;margin:3px 0}
+.seg{border:0}.seg button{display:none;min-height:0;padding:0 6px;border:1px solid #999;border-radius:99px;font-size:9px}.seg button.a{display:inline-block;background:@@theme.primary@@!important;color:#fff!important}
+#lseg{display:inline-flex!important}
+details>summary{min-height:0!important;font-size:10px}.ad[open]>summary{margin-bottom:3px}
+.last{border:1.5px solid #c62828;padding:0}.lh{background:#fff!important;color:#c62828!important;padding:3px 7px;border-bottom:1.5px solid #c62828}.lh b{font-size:11px}.la{font-size:9px;margin-top:2px}.lb{padding:4px 7px}.lt{gap:4px}.lt>div{padding:3px}.stg{margin:5px 0 2px;font-size:8.5px}.mx{margin-top:4px;padding:3px;font-size:9.5px;background:#c62828!important;color:#fff!important}.mx b{font-size:11px}.lx{font-size:8.5px}.lx li{padding:2px 0}
+#imA,#imS,#lr+.lb{display:none!important}
+#gseg{display:inline-flex!important;width:auto}#gseg button{min-height:0!important;flex:none;padding:0 8px}
+[style*="font-size:17px"]{font-size:11px!important}#used>summary{font-size:11px!important}
+.badge{font-size:10px;padding:1px 7px}.pl{font-size:8px;line-height:1.15}.big{font-size:12px!important}
+.lt>div{padding:2px}.lt .d{font-size:8px}.lt .u{font-size:9px}.lt .n{font-size:14px!important}
+#cwa{max-width:68mm}#used{margin-top:4px!important;padding-top:4px!important}
+.g{gap:4px}label{margin-bottom:1px}
+#lseg{border:0!important;overflow:visible!important;border-radius:0!important}#lseg button{min-height:0!important;padding:1px 8px!important;border-radius:4px!important;background:#c62828!important;color:#fff!important;font-size:9px!important}
+#tb td.sm,#tb th.sm{font-size:9px}[style*="font-size:12px"]{font-size:8.5px!important}
+input:focus,textarea:focus,select:focus{outline:0!important;box-shadow:none!important}
+svg [style*="font-size:12px"]{font-size:12px!important}
+#planp{grid-area:q;margin:0;padding:4px 8px;border:1px solid #1e7e46;background:#e6f6ec!important;color:#14532d;border-radius:4px;font-size:11px;line-height:1.4}#planp.bad{background:#fde8e8!important;color:#8b1a1a;border-color:#c62828}#planp:empty{display:none!important}.selbox{padding:3px 6px;margin-top:4px;font-size:9px}
+}
+#plan{flex:1 0 100%;background:#2e9d5f;color:#fff;border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.4}#plan.bad{background:#c62828}#plan b{font-size:16px}#plan .pl0{font-weight:700}
+.selbox{background:var(--ok);color:var(--okt);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px}.selbox.bad{background:var(--er);color:var(--ert)}
+header{padding:6px 10px;gap:6px;flex-wrap:wrap}header b{font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hbtn{display:flex;gap:6px}#hbtn button{min-height:36px;min-width:36px;padding:0 9px;font-size:15px}.bt{display:none;font-size:14px}@media(min-width:560px){.bt{display:inline}}
+#plan{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;padding:5px 10px;font-size:13px;line-height:1.3;border-radius:10px}#plan.x{display:block}#plan b{font-size:14px}
+#nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 12px 0;max-width:760px;margin:0 auto}#nav button{min-height:34px;padding:0 14px;border-radius:99px;white-space:nowrap;background:var(--card);color:var(--pr);border:1px solid var(--bd);font-size:14px}#nav .sos{background:#c62828;color:#fff;border-color:#c62828;font-weight:700}
+.card{scroll-margin-top:84px}
+@media print{#nav{display:none!important}}
+#pmrow{align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}#pmgo{background:#d6006f;color:#fff;border:0;font-weight:700;min-height:44px;animation:pmp 1.6s ease-in-out 3}@keyframes pmp{50%{box-shadow:0 0 0 7px rgba(214,0,111,.25)}}
+#pmb{background:color-mix(in srgb,var(--pr) 16%,var(--card));color:var(--pr);font-weight:700}
+html.paed:root{--pr:#d6006f}html.paed:root header{background:linear-gradient(135deg,#a8005a,#e0268a)}
+html.paed:root[data-theme="dark"]{--pr:#e5408f}@media (prefers-color-scheme:dark){html.paed:root:not([data-theme="light"]){--pr:#e5408f}}
+html.paed:root[data-theme="dark"] header{background:linear-gradient(135deg,#7a0044,#b01c6c)}
+@media print{#bmid,#pmgo,#pmx{display:none!important}}
+.adultx{background:@@theme.primary@@!important;color:#fff!important;border:0!important;font-weight:700;min-height:44px;animation:pma 1.6s ease-in-out 3}@keyframes pma{50%{box-shadow:0 0 0 7px rgba(11,107,203,.25)}}
+.agew{display:flex;gap:6px}.agew input{flex:1;min-width:0}.agew select{flex:0 0 94px;padding:0 6px}
+</style></head><body>
+<header><b id="hw">Weight —</b><div id="hbtn"><button id="thm" aria-label="Toggle dark mode">🌓</button><button onclick="printPage()" aria-label="Print">🖨<span class="bt"> Print</span></button><button onclick="ov(1)" aria-label="Expert settings">⚙️<span class="bt"> Expert settings</span></button></div><div id="plan" style="display:none" title="Tap to expand or collapse"></div></header><nav id="nav"><button data-t="c0">Patient</button><button data-t="c1">Airway</button><button data-t="c2">Single agent</button><button data-t="c3">Dual agent</button><button data-t="c4">Dilution</button><button data-t="c5" class="sos">🚨 LAST</button></nav>
+<main id="mn"><div class="pd" id="pd"></div><div class="pronly" id="planp"></div>
+<div class="card"><h2>🧑‍⚕️ 1. Patient <button class="chip" id="newpt" style="margin-left:auto;min-height:36px">New patient</button></h2>
+<div class="g"><div><label>Weight (kg)</label><input id="w" type="number" inputmode="decimal" placeholder="e.g. 70"></div>
+<div><label>Height (m or cm), optional</label><input id="h" type="number" inputmode="decimal" placeholder="e.g. 1.75"></div>
+<div><label>Gender</label><select id="s" style="display:none"><option>Male</option><option>Female</option></select><div class="seg" id="gseg"><button data-g="Male">Male</button><button data-g="Female">Female</button></div></div>
+<div><label id="agel">Age (years), optional</label><div class="agew"><input id="age" type="number" inputmode="decimal" step="any" placeholder="e.g. 8.5"><select id="ageu" style="display:none"><option value="d">days</option><option value="w">weeks</option><option value="m">months</option><option value="y" selected>years</option></select></div></div></div>
+<div id="pmrow" style="display:none"><button id="pmgo" class="chip">Enter paediatric mode?</button><span id="pmb" class="badge" style="display:none">👶 Paediatric mode · RCPCH BMI centiles</span><button id="pmx" class="chip" style="display:none">Exit</button><span id="pmh" class="mu"></span></div><div id="pwarn"></div><p id="pinfo" class="mu"></p><div id="wrow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div id="pbadge"></div><div class="seg"><button id="sgT" data-wm="tbw">TBW</button><button id="sgL" data-wm="lbw">LBW</button></div><button id="wauto" class="chip" data-wm="auto" style="display:none">Auto</button></div><details id="bmid" style="display:none;margin-top:10px"><summary><b>BMI chart (RCPCH, 2–20 years)</b><span id="bsum" class="mu" style="flex:1;text-align:right"></span></summary><div style="position:relative;max-width:560px;margin:8px auto 0"><img id="bmimg" alt="RCPCH BMI centile chart" style="width:100%;display:block;border:1px solid var(--bd);border-radius:10px;background:#fff"><svg id="bmsv" viewBox="0 0 1000 1093" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg></div><p id="bmt" class="mu" style="margin:8px 0 0"></p></details><p id="rmline" class="mu" style="margin:10px 0 0;border-top:1px solid var(--bd);padding-top:8px">@@text.proteinBinding@@</p></div>
+
+<div class="card"><details id="airwayd" class="ad"><summary><h2>🌬 2. Airway topicalisation</h2><span id="asum" class="mu">None entered</span></summary>
+<label>Airway topicalisation (free text)</label>
+<textarea id="at" rows="2" placeholder="e.g. co-phenylcaine 5 sprays each nostril, 4ml 4% lignocaine nebulised"></textarea>
+<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><span id="ast" class="mu"></span></div>
+<div id="ab" style="margin-top:8px"></div>
+<div class="g" style="margin-top:8px"><div><label>Or manual lidocaine used (mg)</label><input id="am" type="number" inputmode="decimal"></div>
+<div><label>Parsed total (mg)</label><div class="big" id="ap">0</div></div></div>
+</details><div id="aw"></div></div>
+
+<div class="card"><h2>💉 3. Single agent maximum doses</h2><div style="overflow-x:auto"><table id="tb"></table></div><div id="sas"></div>
+<p class="mu">Tap a row to select it. Volumes rounded down to 0.1 ml. Amber = reduced by airway lidocaine. Red = no safe dose left.</p></div>
+
+<div class="card"><h2>🧪 4. Dual agent maximum doses</h2>
+<div class="g"><div><label>Agent 1</label><select id="d1"></select></div><div><label>Agent 2</label><select id="d2"></select></div></div>
+<div id="dr"></div><div id="cw"><div id="cwa"></div><div id="tiles" style="margin-top:8px"><div class="pair"><div class="pc"><div class="ed"><input class="pk pn" id="p1" type="number" inputmode="decimal" min="0" step="any" placeholder="0" onfocus="this.select()" aria-label="ml of agent 1"><span>ml</span></div><div class="pl" id="pl1">Agent 1</div></div><div class="pp">+</div><div class="pc"><div class="ed"><input class="pk pn" id="p2" type="number" inputmode="decimal" min="0" step="any" placeholder="0" onfocus="this.select()" aria-label="ml of agent 2"><span>ml</span></div><div class="pl" id="pl2">Agent 2</div></div></div><div class="meter"><i id="mi" style="width:0"></i></div><div class="mu" id="mt"></div><div id="pm"></div></div><div id="cwb"></div><div class="pronly" id="ptr"></div></div>
+<details id="used" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:10px;font-size:16px"><summary style="font-size:17px"><b>“I have used” calculator</b></summary>
+<p class="mu">Already given some? Enter how much of each agent has been used so far. Leave blank for none.</p>
+<label id="ul1">Agent 1 used (ml)</label><div class="ur"><input id="u1" type="number" inputmode="decimal" min="0" placeholder="0"><button class="chip" data-u="u1" data-n="1">+1</button><button class="chip" data-u="u1" data-n="5">+5</button><button class="chip" data-u="u1" data-n="10">+10</button><button class="chip" data-u="u1" data-n="c">Clear</button></div>
+<label id="ul2" style="margin-top:8px">Agent 2 used (ml)</label><div class="ur"><input id="u2" type="number" inputmode="decimal" min="0" placeholder="0"><button class="chip" data-u="u2" data-n="1">+1</button><button class="chip" data-u="u2" data-n="5">+5</button><button class="chip" data-u="u2" data-n="10">+10</button><button class="chip" data-u="u2" data-n="c">Clear</button></div>
+<div id="ur" style="margin-top:12px"></div></details></div>
+
+<div class="card"><h2>💧 5. Dilution Calculator</h2>
+<div class="g"><div><label>Available (higher)</label><select id="k1"></select></div><div><label>Desired (lower)</label><select id="k2"></select></div>
+<div><label>Final volume (ml)</label><input id="kv" type="number" inputmode="decimal" value="40"></div></div><div id="kr"></div></div>
+
+<div class="card last"><div class="lh"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>🚨 6. LAST EMERGENCY: 20% LIPID</b><div class="seg" id="lseg"><button id="lsA" data-lm="aagbi">AAGBI</button><button id="lsS" data-lm="asra">ASRA</button></div></div><div class="la">STOP injecting · CALL FOR HELP · Airway + 100% O₂ · Get the LAST rescue kit</div></div>
+<div class="lb" id="lr"></div>
+<div class="lb" style="padding-top:0"><div class="mu" style="margin-bottom:6px">Guideline (tap image to zoom)</div><div style="overflow:auto;border:1px solid var(--bd);border-radius:10px;background:#fff"><img id="imA" alt="@@last.alt.aagbi@@" style="width:100%;display:block" onclick="this.style.width=this.style.width=='220%'?'100%':'220%'" src="@@img:last.aagbi@@"><img id="imS" alt="@@last.alt.asra@@" style="width:100%;display:none" onclick="this.style.width=this.style.width=='220%'?'100%':'220%'" src="@@img:last.asra@@"></div><p class="mu" id="lcap"></p></div></div>
+<p class="mu"><span class="stamp">@@stamp@@</span>@@text.footer@@</p>
+</main>
+
+<div class="ov" id="chk" style="z-index:40"><div class="card" style="max-width:380px;margin-top:15vh"><h2>⚠️ Please check this value</h2><p id="chkm"></p><button id="chkb" style="background:var(--pr);color:#fff;width:100%;min-height:44px">Correct it</button></div></div>
+<div class="ov" id="ov"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Expert settings</h2><button onclick="ov(0)">Close</button></div><div id="sg"></div>
+<p><button id="addc">+ Add custom local anaesthetic</button> <button id="rst">Reset all to defaults</button></p>
+<details><summary>Formulas &amp; references</summary>
+<p><b>LBW (kg, H in cm, W in kg, always capped at TBW):</b> Janmahasatian: M 9270W/(6680+216·BMI), F 9270W/(8780+244·BMI). Boer: M 0.407W+0.267H−19.2, F 0.252W+0.473H−48.3. James: M 1.1W−128(W/H)², F 1.07W−148(W/H)². Hume: M 0.3281W+0.33929H−29.5336, F 0.29569W+0.41813H−43.2933. Peters: 3.8×0.0215×W^0.6469×H^0.7236.</p>
+<p><b>Dosing weight:</b> TBW below the BMI threshold; between threshold and threshold+5 a linear blend towards LBW (adjusted weight, as in the source spreadsheet; the strict option switches straight to LBW at the threshold); LBW above (SOBA).</p>
+<p><b>Paediatric mode</b> (offered if age ≤16 y, height ≤1.2 m or weight &lt;30 kg; entered manually): the BMI threshold is the chosen RCPCH BMI centile (UK-WHO/UK90, 2–20 y, by sex) at the child’s age. Below it TBW is used; from the threshold to 110% of it the dosing weight blends from TBW to LBW; above that LBW is used (Peters by default). Without age (2–20 y), sex or height, TBW is used. Centile lines were digitised from the RCPCH charts.</p>
+<p><b>Lidocaine pool</b> = total mg/kg LBW (no absolute mg cap). Airway lidocaine used reduces it and the remaining fraction scales every agent's dosing weight.</p>
+<p><b>Max volume</b> (ml) = weight × mg/kg ÷ mg/ml. <b>Dual agents:</b> V1/Max1 + V2/Max2 ≤ 1. <b>Dilution:</b> V_high = C_low·V_final/C_high. </p>
+<p><b>LAST lipid emulsion 20% (W = weight in kg), AAGBI 2010:</b> bolus = 1.5 × W ml over 1 min; infusion = 15 × W ml/h. After 5 min if still unstable: up to two repeat boluses of the same dose, 5 min apart (maximum three boluses in total), and the infusion doubles to 30 × W ml/h. Maximum cumulative dose = 12 × W ml. (The AAGBI sheet's 70 kg example is rounded to 100 ml and 1000 ml/h; the calculator uses exact per-kg figures.)</p>
+<p><b>LAST, ASRA 2020 checklist:</b> over 70 kg (strictly over): bolus ~100 ml over 2–3 min, then ~250 ml over 15–20 min (≈750–1000 ml/h). 70 kg or under: bolus ~1.5 × W ml (maximum 100 ml) over 2–3 min, infusion ~0.25 × W ml/min (= 15 × W ml/h; consider a pump below 40 kg). If still unstable: repeat the bolus and double the infusion (30 × W ml/h under 70 kg, ≈1500–2000 ml/h over 70 kg). No fixed repeat limit is stated. Continue lipid for ≥15 min once haemodynamically stable. Maximum lipid dose = 12 × W ml. Epinephrine: start ≤1 mcg/kg.</p>
+<p>@@text.defaultLimits@@</p><p class="mu" style="border-top:1px solid var(--bd);padding-top:10px">@@text.disclaimer@@</p></details></div></div>
+<script>
+var NEO=false;var D=CFG.defaults;
+var S=Object.assign({},D),OVR={},cu=[];
+try{var x=localStorage.getItem(SK+"Set");if(x)S=Object.assign(S,JSON.parse(x));OVR=JSON.parse(localStorage.getItem(SK+"Ov")||"{}");cu=JSON.parse(localStorage.getItem(SK+"Cu")||"[]");var p=localStorage.getItem(SK+"Pt");if(p){p=JSON.parse(p);["w","h","s","age"].forEach(function(k){if(p[k]!=null)document.getElementById(k).value=p[k]})}}catch(e){}
+var BND={bmi:[15,60],lidoCap:[0.5,30],lidoMax:[50,2000],cpMg:[0.5,50],cpN:[1,60],bolus:[0.1,5],inf:[1,60],mult:[1,4],cap:[1,30],neoRed:[0,90]};
+function clampv(f,n){var b=BND[f];return b?Math.min(b[1],Math.max(b[0],n)):n}
+(function(){for(var k in BND){if(typeof S[k]!=="number"||!isFinite(S[k]))S[k]=D[k];S[k]=clampv(k,S[k])}var F=["jan","boer","james","hume","peters"];if(F.indexOf(S.lbw)<0)S.lbw=D.lbw;if(F.indexOf(S.lbwP)<0)S.lbwP=D.lbwP;if(["c91","c98","c996"].indexOf(S.pc)<0)S.pc=D.pc;S.blend=S.blend!==false;
+if(!OVR||typeof OVR!=="object"||Array.isArray(OVR))OVR={};if(!Array.isArray(cu))cu=[];cu=cu.filter(function(c){return c&&typeof c==="object"&&c.id!=null})})();
+var BASE=CFG.agents.map(function(a){return[a.id,a.name,a.mgPerMl,a.maxMgPerKg,a.group,a.enabled?1:0]});
+function A(raw){var f=(NEO&&!raw)?1-Math.min(90,Math.max(0,S.neoRed||0))/100:1,fin=function(v){return typeof v==="number"&&isFinite(v)};
+return BASE.map(function(b){var o=OVR[b[0]]||{},k=fin(o.k)&&o.k>=0?o.k:b[3],on=o.on!=null?!!o.on:!!b[5];if(NEO&&!raw&&b[4]=="pr")on=false;return{id:b[0],name:b[1],c:b[2],k:k*f,g:b[4],on:on}}).concat(cu.map(function(c){var inv=!(fin(c.c)&&c.c>0)||!(fin(c.k)&&c.k>=0);return{id:String(c.id),name:String(c.name||"Custom"),c:raw?c.c:(inv?10:c.c),k:(fin(c.k)&&c.k>=0?c.k:0)*(raw?1:f),g:String(c.id),on:!inv&&c.on!==false,cu:1,inv:inv}}))}
+var $=function(i){return document.getElementById(i)},fl=function(v,d){var m=Math.pow(10,d==null?1:d);return Math.floor(v*m+1e-9)/m};
+var st={},CH=null;
+function lbwF(w,hm,male,bmi){var H=hm*100,r;switch(PM?S.lbwP:S.lbw){case"boer":r=male?.407*w+.267*H-19.2:.252*w+.473*H-48.3;break;case"james":r=male?1.1*w-128*Math.pow(w/H,2):1.07*w-148*Math.pow(w/H,2);break;case"hume":r=male?.3281*w+.33929*H-29.5336:.29569*w+.41813*H-43.2933;break;case"peters":r=3.8*.0215*Math.pow(w,.6469)*Math.pow(H,.7236);break;default:r=male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi)}if(!(r>=0.25*w))r=male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi);return Math.max(0,Math.min(w,r))}
+var PM=false,PDIS=false,WM="auto";try{var pp=JSON.parse(localStorage.getItem(SK+"Pt")||"{}");if(pp.wm)WM=pp.wm;PM=!!pp.pm;PDIS=!!pp.pdis;if(pp.au){var ue=document.getElementById("ageu");ue.value=pp.au;ue.dataset.u=pp.au}}catch(e){}
+var CEN=@@json:cen@@,CAL=@@json:cal@@;
+var IMG={F:"@@img:bmiGirls@@",M:"@@img:bmiBoys@@"};
+function ageY(){var v=+$("age").value;if(!(v>0))return 0;var u=PM?$("ageu").value:"y";return v*({d:1/365.25,w:7/365.25,m:1/12,y:1}[u])}
+function cen(s,k,a){var g=CEN[s][k][a<4?0:1],i;if(a<=g[0][0])return g[0][1];if(a>=g[g.length-1][0])return g[g.length-1][1];for(i=1;i<g.length;i++)if(g[i][0]>=a){var p=g[i-1],q=g[i];return p[1]+(q[1]-p[1])*(a-p[0])/(q[0]-p[0])}}
+function pt(){var w=+$("w").value,h=+$("h").value,age=ageY();if(h>3)h=h/100;var hm=h>0?h:0;if(!(h>=(PM?0.05:0.25)))h=0;
+var male=$("s").value=="Male",sx=male?"M":"F",bmi=w&&h?w/(h*h):0,lbw=bmi?lbwF(w,h,male,bmi):0,T=S.bmi,bw=5,wt=w,mode="TBW",tbwOnly=false,band="",cc=null;
+if(PM){if(bmi&&age>=2&&age<=20){T=cen(sx,S.pc,age);bw=T*0.1;cc={c91:cen(sx,"c91",age),c98:cen(sx,"c98",age),c996:cen(sx,"c996",age)};band=bmi>=cc.c996?"severely obese (\u226599.6th)":bmi>=cc.c98?"obese (\u226598th)":bmi>=cc.c91?"overweight (\u226591st)":"below 91st centile"}else{tbwOnly=true;T=1e9}}
+if(WM=="lbw"&&lbw>0){wt=lbw;mode="LBW (manual)"}else if(WM=="tbw"){mode=bmi>=T?"TBW (manual)":"TBW"}
+else if(bmi>=T){if(S.blend&&bmi<T+bw){wt=w+(lbw-w)*((bmi-T)/bw);mode="Adjusted (TBW\u2192LBW)"}else{wt=lbw;mode="LBW"}}
+return{neo:PM&&age>0&&age<=0.2501,w:w,h:h,bmi:bmi,lbw:lbw,wt:wt,mode:mode,ok:w>0&&w<=300,noh:!h,hm:hm,tbwOnly:tbwOnly,thr:(PM&&!tbwOnly)?T:0,band:band,cc:cc,age:age,sx:sx}}
+function plaus(P){var m=[],a=P.age,b=function(id){var v=$(id).value;return v!==""&&!(+v>0)};
+if(b("w"))m.push("weight must be a positive number");if(b("h"))m.push("height must be a positive number");if(b("age"))m.push("age must be a positive number");
+if(P.w>300)m.push("weight over 300 kg: calculations paused until corrected");else if(P.w>0&&P.w<0.4)m.push("weight "+fl(P.w,1)+" kg is outside the usual range");
+if(!PM&&P.hm>0&&P.hm<0.25)m.push("height "+fl(P.hm*100,0)+" cm was not understood and is ignored (enter metres or cm)");else if(P.hm>2.5)m.push("height over 2.5 m");else if(!PM&&P.hm>0&&P.hm<0.3)m.push("height "+fl(P.hm,2)+" m is outside the usual range");
+if(P.bmi>0&&(P.bmi<9||P.bmi>100))m.push("BMI "+fl(P.bmi,1).toFixed(1)+" is very unusual: check weight and height");
+if(a>120)m.push("age over 120 years");var v=+$("age").value,u=PM?$("ageu").value:"y";if(v>0&&((u=="d"&&v>3650)||(u=="w"&&v>520)||(u=="m"&&v>240)))m.push("check the age unit");
+if(a>0&&P.w>0&&((a<1&&P.w>25)||(a<2&&P.w>35)||(a<12&&P.w>150)||(a>=18&&P.w<20)))m.push("weight is unusual for this age");
+return m.length?'<div class="alert"><b>Check inputs:</b> '+m.join("; ")+'. Please check them.</div>':""}
+function ptrig(P){var a=ageY(),r=[];if(a>0&&a<=16)r.push("age \u226416 y");if(P.h>0&&P.h<=1.2)r.push("height \u22641.2 m");if(P.w>0&&P.w<30)r.push("weight <30 kg");return r}
+function bmiChart(P){var sx=P.sx,im=$("bmimg"),c=CAL[sx],age=P.age,svg="",tx="";if(im.dataset.s!=sx){im.src=IMG[sx];im.dataset.s=sx}
+$("bsum").textContent=(P.bmi&&!(age>0&&age<2))?"BMI "+fl(P.bmi,1).toFixed(1):"";
+if(P.bmi&&age>=2&&age<=20){var Hh=1000/c.ar,a=Math.min(20,Math.max(2,age)),b=Math.min(50,Math.max(8,P.bmi)),X=(c.fx2+(a-2)*(c.fx20-c.fx2)/18)*1000,Y=(c.fy50+(50-b)*(c.fy8-c.fy50)/42)*Hh,lx=X>600?X-18:X+18;
+svg='<line x1="'+X+'" y1="'+Y+'" x2="'+X+'" y2="'+c.fy8*Hh+'" stroke="#000" stroke-width="2" stroke-dasharray="7 6"/><line x1="'+X+'" y1="'+Y+'" x2="'+c.fx2*1000+'" y2="'+Y+'" stroke="#000" stroke-width="2" stroke-dasharray="7 6"/><circle cx="'+X+'" cy="'+Y+'" r="13" fill="#ffd400" stroke="#000" stroke-width="4"/><text x="'+lx+'" y="'+(Y-16)+'" text-anchor="'+(X>600?"end":"start")+'" font-size="30" font-weight="700" fill="#000" stroke="#fff" stroke-width="7" paint-order="stroke">BMI '+fl(P.bmi,1).toFixed(1)+' \u00b7 '+fl(age,1)+' y</text>';
+tx='At '+fl(age,1)+' years ('+(sx=="M"?"boys":"girls")+') the centiles are <b>91st '+fl(P.cc.c91,1)+'</b>, <b>98th '+fl(P.cc.c98,1)+'</b>, <b>99.6th '+fl(P.cc.c996,1)+'</b>. Patient BMI <b>'+fl(P.bmi,1).toFixed(1)+'</b>: '+P.band+'.'}
+else tx=(age>0&&age<2)?'The RCPCH BMI chart starts at 2 years, so this patient cannot be plotted.':'Enter weight, height and age (2\u201320 years) to plot the patient on the chart.';
+$("bmsv").innerHTML=svg;$("bmsv").setAttribute("viewBox","0 0 1000 "+1000/c.ar);$("bmt").innerHTML=tx}
+function pmUI(P){var tr=ptrig(P);if(!!P.neo!==NEO){NEO=!!P.neo;fillSel()}$("ageu").style.display=PM?"":"none";$("agel").textContent=PM?"Age, optional":"Age (years), optional";document.documentElement.classList.toggle("paed",PM);
+$("pmrow").style.display=(PM||(tr.length&&!PDIS))?"flex":"none";$("pmgo").style.display=PM?"none":"";$("pmb").style.display=PM?"":"none";$("pmx").style.display=PM?"":"none";$("pmh").textContent=PM?"":tr.join(", ");var ag=ageY(),ex=PM&&(ag>0?ag>16:(P.h>1.2&&P.w>=30));$("pmx").textContent=ex?"Exit paediatric mode?":"Exit";$("pmx").className=ex?"chip adultx":"chip";$("bmid").style.display=PM?"":"none";if(PM)bmiChart(P)}
+function fillSel(){var en=A().filter(function(a){return a.on});[["d1","b25"],["d2","lp1"],["k1","b75"]].forEach(function(x){var s=$(x[0]),cur=s.value||x[1];s.innerHTML=en.map(function(a){return'<option value="'+a.id+'">'+esc(a.name)+"</option>"}).join("");if(en.some(function(a){return a.id==cur}))s.value=cur;else if(en.length)s.selectedIndex=0})}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return m[a.length][b.length]}
+var DL=["lidocaine","lignocaine","lidocain","lignocain","xylocaine","xylocain","lidocaina"];
+function isL(s){return (s.match(/[a-z]{4,}/g)||[]).some(function(w){return /^(lido|lidc|ligno|lignc|xylo|xyl[oi]c)/.test(w)||DL.some(function(d){return lev(w,d)<=2})})}
+function isC(s){return /co[\s\-]?ph|cophen|phenylc|phenylk|co[\s\-]?fen|cofen/.test(s)||(s.match(/[a-z]{7,}/g)||[]).some(function(w){return lev(w,"cophenylcaine")<=3})}
+var NW={zero:0,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20,thirty:30,forty:40,fifty:50,half:0.5,one:1};
+function prep(t){t=String(t||"");t=t.replace(/(\d),(\d{3})(?!\d)/g,"$1$2").replace(/(\d),(\d{1,2})(?!\d)/g,"$1.$2").replace(/per\s+cent/gi,"percent");return t.replace(/\b(zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|half|one(?!\s+(?:nostril|side)))\b/gi,function(m){return NW[m.toLowerCase()]})}
+function unit(t){if(!t)return"";if(/^(ml|mls|cc|ccs|mil+i?l?i?t.*)$/.test(t)||/^millil/.test(t)||t=="lm"||(t.length>=2&&t.length<=3&&!/^(mg|mgs|no|in|on|of|at|to|or|and)$/.test(t)&&lev(t,"ml")<=1))return"ml";if(/^(mg|mgs|milligrams?|mgm)$/.test(t))return"mg";if(/^(g|gm|gms|grams?|grammes?)$/.test(t))return"g";if(t=="%"||t=="percent"||t=="pc")return"pct";if(/^spr/.test(t)||(t.length>=4&&(lev(t,"sprays")<=2||lev(t,"squirts")<=2||lev(t,"puffs")<=1||lev(t,"pumps")<=1||lev(t,"actuations")<=2)))return"sp";return""}
+function segParse(raw){var s=prep(raw).toLowerCase().replace(/×/g,"x").replace(/(\d)([a-z%])/g,"$1 $2").replace(/([a-z%])(\d)/g,"$1 $2"),C=isC(s),L=isL(s)||C;if(!L)return{skip:raw.trim()};
+var tk=s.match(/\d+(?:\.\d+)?|[a-z]+|%/g)||[],ml=null,mg=null,pct=null,sp=null,cn=null,fl=[],xm=1,dup=0;
+tk.forEach(function(t,i){if(t!="x")return;var a=tk[i+1],b=tk[i-1];if(/^\d/.test(a||"")&&!unit(tk[i+2]))xm=+a;else if(/^\d/.test(b||"")&&/^\d/.test(a||""))xm=+b});
+tk.forEach(function(t,i){if(!/^\d/.test(t))return;var n=+t,u=unit(tk[i+1]),nx=tk.slice(i+1,i+4).join(" ");if((u=="ml"&&ml!=null)||(u=="pct"&&pct!=null)||(u=="mg"&&mg!=null&&tk[i+2]!="ml"))dup=1;if(u=="ml"&&ml==null)ml=n;else if(u=="mg"&&tk[i+2]=="ml"&&cn==null)cn=n;else if(u=="mg"&&mg==null)mg=n;else if(u=="g"&&mg==null)mg=n*1000;else if(u=="pct"&&pct==null)pct=n;else if(u=="sp"&&sp==null)sp=n;else if(!u&&tk[i-1]=="x"&&sp==null&&xm==1)sp=n;else if(!u&&/(per|each|every)\s+(nostril|side)/.test(nx)&&sp==null)sp=n});
+if(cn!=null&&pct==null)pct=cn/10;
+if(sp==null&&ml==null&&mg==null&&xm>1&&(C||pct==10||/xylo/.test(s))){sp=xm;xm=1}
+var mult=1,wd=s.match(/[a-z]+/g)||[],nI=[];wd.forEach(function(w,i){if((w.length>=4&&(lev(w,"nostril")<=2||lev(w,"nostrils")<=2))||/^sides?$/.test(w))nI.push(i)});
+var bi=wd.some(function(w){return /^bilat/.test(w)||(w.length>=6&&lev(w,"bilateral")<=2)}),each=wd.some(function(w,i){return nI.some(function(j){return Math.abs(i-j)<=2&&i!=j&&(/^(per|each|every|both|bd|bds)$/.test(w)||(w.length>=4&&(lev(w,"each")<=2||lev(w,"both")<=1||lev(w,"every")<=1)))})});
+if(bi||each)mult=2;var uni=/unilateral|\b(one|1|single|left|right|lt|rt)\s+(nostril|side)/.test(s)||wd.some(function(w){return w.length>=7&&lev(w,"unilateral")<=2});
+var label=raw.trim(),out=0,xs=function(){return xm>1?" × "+xm:""};
+if(C){var per=pct||S.cpMg;if(pct&&pct!=5)fl.push("concentration "+pct+"% used");
+if(sp!=null){out=sp*mult*per;label="Co-phenylcaine: "+sp+" spray"+(sp==1?"":"s")+(mult==2?" × 2 nostrils":"")+" × "+per+" mg";if(mult==1&&!uni)fl.push("nostril count not stated: counted as TOTAL sprays (double it if per nostril)")}
+else if(ml!=null){out=ml*50*xm;label="Co-phenylcaine "+ml+" ml × 50 mg/ml (5%)"+xs()}
+else if(mg!=null){out=mg*xm;label="Co-phenylcaine "+mg+" mg lidocaine"+xs()}
+else{out=S.cpN*per;label="Co-phenylcaine (amount unstated)";fl.push("assumed "+S.cpN+" sprays total (5 per nostril)")}}
+else{if(ml!=null&&pct!=null){out=ml*pct*10*xm;label="Lidocaine "+ml+" ml × "+pct+"%"+xs()}
+else if(sp!=null){var ps=pct==10||pct==null?10:pct;out=sp*mult*ps;label="Lidocaine "+sp*mult+" sprays × "+ps+" mg";if(pct==null)fl.push("assumed 10% pump spray (10 mg/spray)");else if(pct!=10)fl.push("assumed 0.1 ml per spray")}
+else if(mg!=null){out=mg*xm;label="Lidocaine "+mg+" mg"+xs()}
+else if(ml!=null){fl.push("concentration missing: not counted");label="Lidocaine "+ml+" ml (no %)";return{label:label,mg:0,fl:fl,bad:1}}
+else{fl.push("no quantity found: not counted");return{label:label,mg:0,fl:fl,bad:1}}}
+if(out>3000)fl.push("implausibly large (over 3000 mg): check units");
+var warn=0;if(dup){fl.push("more than one amount in this entry: only the first was counted. Separate items with commas.");warn=1}
+if(!C&&pct!=null&&mg!=null&&ml==null&&sp==null&&cn==null){fl.push('"mg" given with a % concentration: did you mean ml? Counted as mg.');warn=1}
+return{label:label,mg:out,fl:fl,bad:warn}}
+var OTH=/bupi|levobup|ropiv|prilo|chloroproc|mepiv|articain|tetracain|cocain|phenyleph|adrenal|epineph|ephedr|emla|ketamin|propofol|fentan|morphin|dexmed|clonid|midazol|atropin|glycopyrr/;
+function airway(){var raw=$("at").value,t=prep(raw),items=[],sk=[],ot=[],src="Rules",last=null;
+t.split(/[,;\n+&]|\band\b|\bthen\b|\bplus\b|\bfollowed by\b/i).forEach(function(x){var s0=x.trim();if(!s0)return;var r=segParse(s0);
+if(r.skip){if(OTH.test(s0.toLowerCase())){ot.push(s0);return}if(/\d/.test(s0)&&last&&!last.C){if(last.r.bad){items.pop();var tx=last.text+" "+s0;r=segParse(tx);items.push(r);last={text:tx,r:r,C:last.C};return}
+var r2=segParse("lidocaine "+s0);if(!r2.skip&&!r2.bad){r2.fl=r2.fl.concat(["drug name not stated: assumed lidocaine"]);items.push(r2);last={text:"lidocaine "+s0,r:r2,C:false};return}}
+sk.push(s0);return}
+items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
+var tot=0,h="";items.forEach(function(r){tot+=r.mg;h+='<tr class="'+(r.bad?"e":r.fl.length?"w":"")+'"><td>'+esc(r.label)+(r.fl.length?'<div class="mu">'+esc(r.fl.join("; "))+"</div>":"")+'</td><td class=r><b>'+fl(r.mg,0)+" mg</b></td></tr>"});
+var un=sk.filter(function(s){return /\d/.test(s)}),ig=sk.filter(function(s){return !/\d/.test(s)}).concat(ot);
+un.forEach(function(s){h+='<tr class="e"><td>'+esc(s)+'<div class="mu">no drug name found: NOT counted</div></td><td class=r><b>?</b></td></tr>'});
+if(h)h='<table>'+h+'</table><p class="mu">Parsed by: '+src+'. Check assumptions against the procedure record.'+'</p>';
+if(ig.length)h+='<p class="mu">Ignored (not lidocaine): '+esc(ig.join(" | "))+"</p>";$("ab").innerHTML=h;return tot}
+$("pmgo").onclick=function(){PM=true;PDIS=false;WM="auto";calc()};$("pmx").onclick=function(){var y=ageY();$("age").value=y?+y.toFixed(2):"";$("ageu").value="y";$("ageu").dataset.u="y";PM=false;PDIS=false;WM="auto";calc()};
+$("ageu").addEventListener("change",function(){var f={d:1/365.25,w:7/365.25,m:1/12,y:1},o=this.dataset.u||"y",v=+$("age").value;if(v>0){var n=v*f[o]/f[this.value];$("age").value=+n.toFixed(2)}this.dataset.u=this.value;calc()});
+function syncUI(){var g=$("s").value;[].forEach.call(document.querySelectorAll("#gseg button"),function(b){b.className=b.dataset.g==g?"a":""})}
+$("gseg").addEventListener("click",function(e){var g=e.target.dataset.g;if(!g)return;$("s").value=g;calc()});
+[].forEach.call(document.querySelectorAll("main>.card"),function(c,i){c.id="c"+i});[2,3,4].forEach(function(i){$("c"+i).classList.add("cl","col")});
+$("mn").addEventListener("click",function(e){var t=e.target.closest&&e.target.closest(".cl>h2");if(t)t.parentNode.classList.toggle("col")});
+$("nav").addEventListener("click",function(e){var t=e.target.dataset.t;if(!t)return;var c=$(t);c.classList.remove("col");c.scrollIntoView({behavior:"smooth",block:"start"})});
+$("newpt").onclick=function(e){e.stopPropagation();["w","h","age","at","am","u1","u2","p1","p2"].forEach(function(i){$(i).value=""});CH=null;TR=-1;WM="auto";PM=false;PDIS=false;$("ageu").value="y";$("ageu").dataset.u="y";try{localStorage.removeItem(SK+"Pt")}catch(x){}calc()};
+try{var th=localStorage.getItem(SK+"Theme");if(th)document.documentElement.setAttribute("data-theme",th)}catch(e){}
+$("thm").onclick=function(){var d=document.documentElement.getAttribute("data-theme")||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),n=d=="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem(SK+"Theme",n)}catch(e){}};
+function calc(){syncUI();var P=pt();st.P=P;pmUI(P);var used=airway()+(+$("am").value||0);$("ap").textContent=fl(used,1)+" mg";$("asum").textContent=used>0?fl(used,0)+" mg lidocaine used":"None entered";
+var pb=P.lbw||P.w,pool=pb?Math.min(pb*S.lidoCap,S.lidoMax):0,fr=pool?Math.max(0,(pool-used)/pool):1;st.fr=fr;st.used=used;st.pool=pool;var W=P.wt*fr;st.W=W;
+$("hw").textContent=P.ok?((PM?"👶 ":"")+"Dosing weight "+fl(P.wt,1)+" kg · "+P.mode):"Enter weight";
+$("pinfo").textContent=P.ok?(P.noh?"TBW "+P.w+" kg":"BMI "+fl(P.bmi,1).toFixed(1)+" · LBW "+fl(P.lbw,1)+" kg ("+(PM?S.lbwP:S.lbw)+") · TBW "+P.w+" kg"+(PM&&P.thr?" · "+({c91:"91st",c98:"98th",c996:"99.6th"}[S.pc])+" centile BMI "+fl(P.thr,1):"")):"👋 Start by entering the patient\u2019s weight. Height is optional and adds lean body weight.";
+var ay=ageY();$("pwarn").innerHTML=plaus(P)+(P.ok&&P.noh?'<div class="alert">No height entered: total body weight (TBW) is always used for all calculations, including the airway lidocaine pool. Enter height to allow LBW.</div>':"")+(PM&&P.ok&&ay>0&&ay<2?'<div class="alert"><b>Under 2 years:</b> only total body weight (TBW) is used.</div>':(PM&&P.ok&&!P.noh&&P.tbwOnly?'<div class="alert">'+(ay>20?'Age over 20 years: BMI centiles cannot be used, so total body weight (TBW) is used for all calculations.':'No age (2–20 years) entered: BMI centiles cannot be used, so total body weight (TBW) is used for all calculations. Enter age to allow LBW.')+'</div>':""))+(PM&&ay>0&&ay<=0.2501?'<div class="alert"><b>Neonate (3 months or under):</b> '+CFG.text.neonate+(S.neoRed>0?' <b>Dose limits reduced by '+S.neoRed+'%.</b>':'')+(BASE.some(function(b){var o=OVR[b[0]]||{};return b[4]=="pr"&&(o.on!=null?o.on:!!b[5])})?' Prilocaine is locked out.':'')+'</div>':"")+(PM&&ay>0.2501&&ay<=1.0001?'<div class="alert"><b>Infant (1 year or younger):</b> '+CFG.text.infant+'</div>':"");
+$("sgT").className=P.mode.indexOf("TBW")==0?"a":"";$("sgL").className=P.mode.indexOf("LBW")==0?"a":"";$("sgL").disabled=!P.lbw;$("wauto").style.display=WM!="auto"&&P.lbw?"":"none";
+$("pbadge").innerHTML=P.ok?'<span class="badge'+(P.mode=="TBW"?"":" w")+'">Active weight: '+P.mode+" "+fl(P.wt,1)+" kg</span>":"";
+var age=ageY();if(age>70)$("pbadge").innerHTML+=' <span class="badge w">Age &gt;70: consider reducing dose</span>';
+var aw="";if(used>0){aw='<div class="alert'+(used>=pool-0.5?" e":"")+'">'+(used>=pool-0.5?"AIRWAY LIDOCAINE HAS "+(used>pool+0.5?"EXCEEDED":"REACHED")+" THE MAXIMUM: "+fl(used,0)+" mg used, maximum "+fl(pool,0)+" mg"+(used>pool+0.5?" (over by "+fl(used-pool,0)+" mg)":"")+". No further lidocaine; reduce other agents.":"Used "+fl(used,0)+" mg of "+fl(pool,0)+" mg. All doses scaled to "+fl(fr*100,0)+"% remaining.")+"</div>"}$("aw").innerHTML=aw;
+st.en=A().filter(function(a){return a.on});st.M={};st.en.forEach(function(a){st.M[a.id]=a});
+var rows="<tr><th>Agent</th><th class=r>Max ml</th><th class=\"r sm\">Max mg</th><th class=\"r sm\">mg/kg</th></tr>";
+st.en.forEach(function(a){var mx=fl(W*a.k/a.c,1),mg=fl(mx*a.c,0),c=!P.ok?"":fr<=0||mx<=0?"e":fr<1?"w":"";rows+='<tr data-a="'+a.id+'" tabindex="0" class="'+c+(a.id==SEL?' hl':'')+'"><td>'+(c=="e"?"⛔ ":c=="w"?"⚠️ ":"")+esc(a.name)+'</td><td class=r><b class="pill">'+(P.ok?mx:"—")+'</b></td><td class="r sm">'+(P.ok?mg:"—")+'</td><td class="r sm">'+a.k+"</td></tr>"});$("tb").innerHTML=rows;sasText();
+dual();dil();lipid();planUpdate();try{localStorage.setItem(SK+"Pt",JSON.stringify({w:$("w").value,h:$("h").value,s:$("s").value,age:$("age").value,au:$("ageu").value,wm:WM,pm:PM,pdis:PDIS}))}catch(e){}}
+function M(a){return st.W*a.k/a.c}
+function dual(){var a=st.M[$("d1").value],b=st.M[$("d2").value];st.dual=null;st.ch=null;
+if(!st.P.ok){$("dr").innerHTML='<p class=mu>Enter patient details.</p>';$("cw").style.display="none";$("ur").innerHTML="";return}
+if(!a||!b){$("dr").innerHTML='<div class="alert">Enable at least two agents in Expert settings.</div>';$("cw").style.display="none";$("ur").innerHTML="";return}
+var m1=M(a),m2=M(b);if(!(m1>0&&m2>0)){$("dr").innerHTML='<div class="alert e">No safe dose remains for one or both agents (the airway lidocaine pool is used up, or a limit is zero).</div>';$("cw").style.display="none";$("ur").innerHTML="";return}var mix=fl(2*m1*m2/(m1+m2),1);st.dual={a:a,b:b,m1:m1,m2:m2,mix:mix,u1:+$("u1").value||0,u2:+$("u2").value||0};
+var o='<table><tr><td>Max total of a 1:1 mixture</td><td class=r><b>'+mix+' ml</b></td></tr></table>';
+if(a.id==b.id)o+='<div class="alert">Same agent selected twice. Choose two different agents.</div>';
+o+='<div class="alert">If injected intravascularly, even a dose under the maximum can cause toxicity.</div>';$("cw").style.display="";$("dr").innerHTML=o;chart(a,b,m1,m2);usedUI(a,b,m1,m2)}
+function sn(n,l){return n.length>l?n.slice(0,l-1)+"…":n}
+var CW={W:340,H:290,L:50,T:14,PW:272,PH:212};
+function chart(a,b,m1,m2){var c=CW,dec=st.P.wt<20?1:0,i,d=st.dual,X=function(q){return c.L+q/m1*c.PW},Y=function(q){return c.T+c.PH-q/m2*c.PH},g="";
+for(i=0;i<=4;i++){var xv=m1*i/4,yv=m2*i/4;g+='<line x1="'+X(xv)+'" x2="'+X(xv)+'" y1="'+c.T+'" y2="'+(c.T+c.PH)+'" class="gl"/><text x="'+X(xv)+'" y="'+(c.T+c.PH+15)+'" text-anchor="middle">'+fl(xv,dec)+'</text><line x1="'+c.L+'" x2="'+(c.L+c.PW)+'" y1="'+Y(yv)+'" y2="'+Y(yv)+'" class="gl"/><text x="'+(c.L-6)+'" y="'+(Y(yv)+4)+'" text-anchor="end">'+fl(yv,dec)+'</text>'}
+var len=Math.sqrt(c.PW*c.PW+c.PH*c.PH),ang=Math.atan2(c.PH,c.PW)*180/Math.PI,lx=(X(m1)+X(0))/2+c.PH/len*12,ly=(Y(0)+Y(m2))/2-c.PW/len*12;
+var s='<svg id="csv" viewBox="0 0 '+c.W+' '+c.H+'" style="width:100%;touch-action:pan-y;cursor:crosshair;display:block"><rect x="'+c.L+'" y="'+c.T+'" width="'+c.PW+'" height="'+c.PH+'" fill="none" class="ax"/>'+g+'<polygon points="'+X(0)+","+Y(0)+" "+X(m1)+","+Y(0)+" "+X(0)+","+Y(m2)+'" class="ar"/><line x1="'+X(m1)+'" y1="'+Y(0)+'" x2="'+X(0)+'" y2="'+Y(m2)+'" class="ln"/>';
+s+='<text class="rg" x="'+(c.L+14)+'" y="'+(c.T+c.PH-12)+'" style="fill:var(--okt)">SAFE</text><text class="rg" x="'+(c.L+c.PW-8)+'" y="'+(c.T+22)+'" text-anchor="end" style="fill:var(--ert)">EXCEEDS LIMIT</text>';
+s+='<text class="ht" x="'+lx+'" y="'+ly+'" text-anchor="middle" transform="rotate('+ang+" "+lx+" "+ly+')" style="fill:var(--ert);font-weight:600">Maximum total dose</text>';
+s+='<text x="'+(c.L+c.PW/2)+'" y="'+(c.H-6)+'" text-anchor="middle" style="font-size:12px;font-weight:600;fill:var(--tx)">'+esc(sn(a.name,40))+' (ml)</text><text x="12" y="'+(c.T+c.PH/2)+'" text-anchor="middle" transform="rotate(-90 12 '+(c.T+c.PH/2)+')" style="font-size:12px;font-weight:600;fill:var(--tx)">'+esc(sn(b.name,34))+' (ml)</text>';
+if((d.u1||d.u2)&&d.u1<=m1&&d.u2<=m2)s+='<rect x="'+(X(d.u1)-5)+'" y="'+(Y(d.u2)-5)+'" width="10" height="10" transform="rotate(45 '+X(d.u1)+" "+Y(d.u2)+')" fill="var(--pr)" stroke="var(--card)" stroke-width="2"/><text class="ht" x="'+(X(d.u1)+10)+'" y="'+(Y(d.u2)-8)+'" style="fill:var(--pr);font-weight:600">Used</text>';
+st.ch={a:a,b:b,m1:m1,m2:m2};var key=a.id+"|"+b.id,pm="";if(CH&&CH.k!=key){CH=null;$("p1").value="";$("p2").value=""}
+if(CH&&CH.row!=null){var rf=CH.row/10;CH.x=m1*(1-rf);CH.y=m2*rf;CH.snap=true}
+$("pl1").textContent=a.name;$("pl2").textContent=b.name;
+if(CH&&CH.src){var vv=CH.val,o1=CH.src==1;if(o1){CH.x=Math.min(vv,m1);CH.y=m2*(1-CH.x/m1)}else{CH.y=Math.min(vv,m2);CH.x=m1*(1-CH.y/m2)}CH.snap=true;if(vv>(o1?m1:m2))pm='<div class="alert e">That exceeds the maximum for '+esc((o1?a:b).name)+' ('+fl(o1?m1:m2,1)+' ml).</div>';$(o1?"p2":"p1").value=fl(o1?CH.y:CH.x,1)}
+if(CH){var dd=CH.src?1:dec,x1=fl(Math.min(CH.x,m1),dd),y1=fl(Math.min(CH.y,m2),dd);if(!CH.src){$("p1").value=x1;$("p2").value=y1}}
+var mt="Tap the chart, or type the ml of either agent: the other fills in with the maximum still safe.",mw=0,mc="var(--okt)";
+if(CH&&CH.k==key){var fr=x1/m1+y1/m2,bad=fr>1,col=bad?"var(--ert)":"var(--okt)";
+s+='<line x1="'+X(CH.x)+'" y1="'+Y(CH.y)+'" x2="'+X(CH.x)+'" y2="'+(c.T+c.PH)+'" stroke="'+col+'" stroke-dasharray="3 3"/><line x1="'+X(CH.x)+'" y1="'+Y(CH.y)+'" x2="'+c.L+'" y2="'+Y(CH.y)+'" stroke="'+col+'" stroke-dasharray="3 3"/>'+(CH.snap?'<circle cx="'+X(CH.x)+'" cy="'+Y(CH.y)+'" r="10" fill="none" stroke="'+col+'" stroke-width="2"/>':"")+'<circle cx="'+X(CH.x)+'" cy="'+Y(CH.y)+'" r="6" fill="'+col+'" stroke="var(--card)" stroke-width="2"/>';
+mw=Math.min(100,fr*100);mc=col;var pc=fl(fr*100,0);mt=pc+"% of the toxic limit"+(CH.snap?" · on the maximum line"+(!bad&&pc<100?" (just under 100% because the volumes are rounded down)":""):"");if(bad)pm+='<div class="alert e">Above the line: this exceeds the maximum dose.</div>'}
+$("pm").innerHTML=pm;$("mi").style.width=mw+"%";$("mi").style.background=mc;$("mt").textContent=mt;
+s+="</svg>";var tb='<tr><th>'+esc(a.name)+' (ml)</th><th></th><th>'+esc(b.name)+' (ml)</th></tr>',dt=$("cwb").firstChild,op=dt&&dt.open;if(TRK!=key){TR=-1;TRK=key}for(i=0;i<=10;i++){var f=i/10;tb+='<tr data-i="'+i+'" tabindex="0"'+(i==TR?' class="hl"':'')+'><td>'+fl(m1*(1-f),dec)+'</td><td class="pp">+</td><td>'+fl(m2*f,dec)+'</td></tr>'}
+$("cwa").innerHTML='<h2 style="margin-top:14px">Maximum dosing chart</h2>'+s;$("cwb").innerHTML='<details'+(op?' open':'')+'><summary><b>Quick reference table: maximum combinations</b></summary><p class="mu" style="margin:8px 0 0">Read each <b>row across</b>: the two numbers on one row are the most you can give <b>together</b>. Never mix numbers from different rows. <b>Tap a row</b> to select it.</p><table class="rt">'+tb+'</table><div id="trs"></div><p class="mu" style="text-align:center">Volumes are rounded down.</p></details>';trText()}
+function planUpdate(){var P=st.P,pa=[],bad=false,dec=P&&P.wt<20?1:0,a;
+if(!P||!P.ok){$("plan").style.display="none";$("planp").innerHTML="";return}
+if(st.used>0){var ov0=st.pool>0&&st.used>st.pool+0.5;if(st.used>=st.pool-0.5)bad=true;pa.push('<b>'+fl(st.used,0)+' mg</b> lidocaine (airway topicalisation'+(st.used>=st.pool-0.5?', '+(ov0?'over':'at')+' the '+fl(st.pool,0)+' mg maximum':'')+')')}
+if(SEL&&st.M&&st.M[SEL]){a=st.M[SEL];var mx=fl(st.W*a.k/a.c,1);if(mx<=0)bad=true;pa.push('<b>'+mx+' ml</b> '+esc(a.name))}
+else if(CH&&st.ch&&CH.k==st.ch.a.id+"|"+st.ch.b.id){var c=st.ch,d=CH.src?1:dec,x1=fl(Math.min(CH.x,c.m1),d),y1=fl(Math.min(CH.y,c.m2),d);var fr=x1/c.m1+y1/c.m2;if(fr>1)bad=true;if(x1>0)pa.push('<b>'+x1+' ml</b> '+esc(c.a.name));if(y1>0)pa.push('<b>'+y1+' ml</b> '+esc(c.b.name));if(fr<0.8)pa.push('<b>'+fl(fr*100,0)+'%</b> of max dose used')}
+else if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual,f=q.u1/q.m1+q.u2/q.m2;if(f>=1)bad=true;if(q.u1)pa.push('<b>'+q.u1+' ml</b> '+esc(q.a.name)+' (given)');if(q.u2)pa.push('<b>'+q.u2+' ml</b> '+esc(q.b.name)+' (given)');pa.push(fl(f*100,0)+'% of max dose used');if(f<1)pa.push('<b>Remaining:</b> up to <b>'+fl((1-f)*q.m1,1)+' ml</b> '+esc(q.a.name)+' <u>or</u> <b>'+fl((1-f)*q.m2,1)+' ml</b> '+esc(q.b.name))}
+var h=pa.length?'<span class="pl0">Anaesthetic plan:</span> '+pa.join(', ')+(bad?' <b>\u26a0 exceeds maximum</b>':''):'';
+$("plan").style.display=h?"":"none";$("plan").classList.toggle("bad",!!bad);$("plan").innerHTML=h;$("planp").className="pronly"+(bad?" bad":"");$("planp").innerHTML=h}
+$("plan").addEventListener("click",function(){this.classList.toggle("x")});
+function pick(k){if(k!="single")SEL=null;if(k=="used"||k=="single"){CH=null;TR=-1;$("p1").value="";$("p2").value=""}if(k=="chart")TR=-1;if(k!="used"){$("u1").value="";$("u2").value=""}}
+$("used").addEventListener("input",function(e){var t=e.target;if((t.id=="u1"||t.id=="u2")&&t.value!=="")pick("used")},true);
+$("used").addEventListener("click",function(e){var d=e.target.dataset;if(d.u&&d.n!="c")pick("used")},true);
+var SEL=null;
+function sasText(){var el=$("sas"),a=SEL&&st.M?st.M[SEL]:null;if(!el)return;if(!a||!st.P.ok){el.innerHTML="";return}var mx=fl(st.W*a.k/a.c,1),mg=fl(mx*a.c,0),bad=mx<=0;el.innerHTML='<div class="selbox'+(bad?' bad':'')+'"><b>Selected agent, maximum amount:</b><div style="margin-top:6px;font-size:17px"><b>'+mx+' ml</b> '+esc(a.name)+'</div><div style="margin-top:6px;font-size:12px;opacity:.85">'+mg+' mg ('+a.k+' mg/kg) for this patient.</div></div>'}
+$("tb").addEventListener("click",function(e){var tr=e.target.closest&&e.target.closest("tr[data-a]");if(!tr)return;pick("single");SEL=tr.dataset.a;calc()});
+var TR=-1,TRK="";
+function trText(){var c=st.ch,el=$("trs");if(!el)return;if(TR<0||!c){el.innerHTML="";return}var dec=st.P.wt<20?1:0,f=TR/10;el.innerHTML='<div class="selbox"><b>Selected row, maximum amounts:</b><div style="margin-top:6px;font-size:17px"><b>'+fl(c.m1*(1-f),dec)+' ml</b> '+esc(c.a.name)+'</div><div style="font-size:17px"><b>'+fl(c.m2*f,dec)+' ml</b> '+esc(c.b.name)+'</div><div style="margin-top:6px;font-size:12px;opacity:.85">The most of each that fits within the combined safe limit for these two agents.</div></div>'}
+$("cwb").addEventListener("click",function(e){var tr=e.target.closest&&e.target.closest("tr[data-i]");if(!tr)return;var c=st.ch,i=+tr.dataset.i;if(!c)return;pick("row");TR=i;CH={k:c.a.id+"|"+c.b.id,row:i,snap:true,x:c.m1*(1-i/10),y:c.m2*i/10};calc()});
+function cpt(e){var c=st.ch,svg=$("csv");if(!c||!svg||!(e.buttons&1))return;var r=svg.getBoundingClientRect(),q=CW,sx=(e.clientX-r.left)/r.width*q.W,sy=(e.clientY-r.top)/r.height*q.H;
+if(sx<q.L-8||sx>q.L+q.PW+8||sy<q.T-8||sy>q.T+q.PH+8)return;sx=Math.min(Math.max(sx,q.L),q.L+q.PW);sy=Math.min(Math.max(sy,q.T),q.T+q.PH);
+var px=q.L+q.PW,py=q.T+q.PH,dx=-q.PW,dy=-q.PH,t=Math.min(1,Math.max(0,((sx-px)*dx+(sy-py)*dy)/(dx*dx+dy*dy))),qx=px+t*dx,qy=py+t*dy,snap=Math.hypot(sx-qx,sy-qy)<14;if(snap){sx=qx;sy=qy}
+pick("chart");CH={k:c.a.id+"|"+c.b.id,x:(sx-q.L)/q.PW*c.m1,y:(q.T+q.PH-sy)/q.PH*c.m2,snap:snap};calc()}
+$("cwa").addEventListener("pointerdown",cpt);$("cwa").addEventListener("pointermove",cpt);
+function usedUI(a,b,m1,m2){var u1=st.dual.u1,u2=st.dual.u2,f=u1/m1+u2/m2,col=f<.8?"var(--okt)":f<1?"var(--wat)":"var(--ert)",rem=1-f,h;
+$("ul1").textContent=a.name+" used so far (ml)";$("ul2").textContent=b.name+" used so far (ml)";
+h='<div style="display:flex;justify-content:space-between"><b>'+fl(f*100,0)+'% of the limit used</b><span class="mu">'+(f<1?fl(rem*100,0)+"% left":"")+'</span></div><div class="meter"><i style="width:'+Math.min(100,f*100)+'%;background:'+col+'"></i></div>';
+if(f>=1)h+='<div class="alert e">'+(f>1?"Maximum exceeded by "+fl((f-1)*100,0)+"%. ":"Limit reached. ")+"Do not give any more of either agent.</div>";
+else h+='<p class="mu" style="margin:8px 0 4px">You can still give, in total, either:</p><div class="pair"><div class="pc"><div class="pn">'+fl(rem*m1,1)+' ml</div><div class="pl">more '+esc(a.name)+'</div></div><div class="pp">or</div><div class="pc"><div class="pn">'+fl(rem*m2,1)+' ml</div><div class="pl">more '+esc(b.name)+'</div></div></div>';
+if(st.fr<1)h+='<p class="mu">Limits already reduced for airway lidocaine.</p>';$("ur").innerHTML=h}
+$("used").addEventListener("click",function(e){var i=e.target.dataset.u;if(!i)return;var el=$(i),n=e.target.dataset.n;el.value=n=="c"?"":(+el.value||0)+(+n);calc()});
+function fillK2(){var a=st.M[$("k1").value],s=$("k2");if(!a){s.innerHTML="";return}var L2=st.en.filter(function(z){return z.g==a.g&&z.c<a.c}).sort(function(p,q){return q.c-p.c}),key=a.id+"|"+L2.map(function(z){return z.id+z.name}).join();
+if(st.k2key!=key){var cur=s.value||"b25";s.innerHTML=L2.length?L2.map(function(z){return'<option value="'+z.id+'">'+esc(z.name)+"</option>"}).join(""):'<option value="">No lower concentration</option>';st.k2key=key;var f=L2.filter(function(z){return z.id==cur})[0]||L2[0];if(f)s.value=f.id}}
+function dil(){fillK2();var a=st.M[$("k1").value],b=st.M[$("k2").value],V=+$("kv").value||0,o="";if(!a){$("kr").innerHTML='<div class="alert">Enable agents in Expert settings.</div>';return}
+if(!b){$("kr").innerHTML='<div class="alert">No lower concentration of this agent is enabled. Enable more concentrations in Expert settings.</div>';return}
+if(a.c<=b.c){o='<div class="alert e">Invalid: available concentration must be higher than desired.</div>'}
+else if(!(V>0)){o='<div class="alert">Enter the final volume (ml).</div>'}
+else{var hf=fl(V*b.c/a.c,1),df=Math.round((V-hf)*100)/100,ach=hf*a.c/V/10,tg=b.c/10;o='<table><tr><td>'+esc(a.name)+'</td><td class=r><b>'+hf+' ml</b></td></tr><tr><td>0.9% NaCl or Water for Injection</td><td class=r><b>'+df+' ml</b></td></tr><tr><td>Resulting '+esc(b.name)+'</td><td class=r>'+V+' ml</td></tr></table>';
+if(Math.abs(ach-tg)/tg>0.03)o+='<div class="alert">Rounded down to 0.1 ml: the mixture will be '+fl(ach,3)+'% (target '+tg+'%). Use a larger final volume for a more accurate concentration.</div>';
+if(a.g!=b.g)o+='<div class="alert e">Mismatched agents: these are different local anaesthetics.</div>';
+var t=V*b.c;if(st.W&&t>st.W*b.k)o+='<div class="alert e">Total dose ('+fl(t,0)+' mg) exceeds max for this patient ('+fl(st.W*b.k,0)+' mg).</div>'}$("kr").innerHTML=o}
+var LM=CFG.last.default;try{var lm0=localStorage.getItem(SK+"Lm");if(lm0&&CFG.last.enabled.indexOf(lm0)>=0)LM=lm0}catch(e){}
+if(CFG.last.enabled.length<2)$("lseg").style.display="none";
+function nb(n,u,l,d){return'<div><div class="d">'+l+'</div><div class="n">'+n+'</div><div class="u">'+u+'</div><div class="d">'+d+'</div></div>'}
+function lastData(w){var R=Math.round,as=LM=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf)};o.b=over?100:as?Math.min(100,R(w*S.bolus)):R(w*S.bolus);return o}
+function lipid(){var w=st.P.wt,as=LM=="asra",R=Math.round;$("lsA").className=as?"":"a";$("lsS").className=as?"a":"";$("imA").style.display=as?"none":"";$("imS").style.display=as?"":"none";
+$("lcap").textContent=as?CFG.last.captions.asra:CFG.last.captions.aagbi;
+if(!w){$("lr").innerHTML='<div class="alert e">Enter the patient\u2019s weight to calculate lipid doses.</div>';return}
+var d=lastData(w),h;
+if(!as){h='<div class="stg">IMMEDIATELY</div><div class="lt">'+nb(d.b,"ml","BOLUS NOW",S.bolus+" ml/kg over 1 min")+nb(d.inf,"ml/h","START INFUSION",S.inf+" ml/kg/h")+'</div>'
++'<div class="stg">AFTER 5 MIN, IF STILL UNSTABLE</div><div class="lt">'+nb(d.b,"ml","REPEAT BOLUS","up to 2 repeats, 5 min apart (max 3 boluses in total)")+nb(d.dbl,"ml/h","DOUBLE INFUSION",S.inf*S.mult+" ml/kg/h")+'</div>'
++'<div class="mx">MAXIMUM CUMULATIVE DOSE <b>'+d.cap+' ml</b> ('+S.cap+' ml/kg)</div><p class="mu">Repeat if cardiovascular stability is not restored or circulation deteriorates. Continue infusion until stable with adequate circulation, or maximum dose given.</p>'}
+else{var inf=d.over?nb("250","ml","INFUSE","over 15–20 min (≈750–1000 ml/h)"):nb(R(w*S.inf/60*10)/10,"ml/min","INFUSE","≈"+d.inf+" ml/h ("+S.inf/60+" ml/kg/min)"+(w<40?" · consider a pump":"")),
+dbl=d.over?nb("2× rate","","DOUBLE INFUSION","≈1500–2000 ml/h"):nb(d.dbl,"ml/h","DOUBLE INFUSION",S.inf*S.mult+" ml/kg/h");
+h='<div class="stg">LIPID EMULSION 20% ('+(d.over?"OVER":"UNDER")+' 70 KG)</div><div class="lt">'+nb(d.b,"ml","BOLUS",(d.over?"~100 ml":R(w*S.bolus)>100?"max 100 ml":"~"+S.bolus+" ml/kg")+" over 2–3 min")+inf+'</div>'
++'<div class="stg">IF PATIENT REMAINS UNSTABLE</div><div class="lt">'+nb(d.b,"ml","REPEAT BOLUS","")+dbl+'</div>'
++'<div class="mx">MAXIMUM LIPID DOSE <b>'+d.cap+' ml</b> ('+S.cap+' ml/kg)</div>'
++'<ul class="lx"><li><b>Seizure:</b> ensure adequate airway. Benzodiazepine preferred. If only propofol is available, use low doses (e.g. 20 mg increments).</li><li><b>Arrhythmia / hypotension:</b> LAST resuscitation is different from standard ACLS. Epinephrine: smaller than normal dose preferred, start ≤1 mcg/kg (≤'+R(w)+' mcg).</li><li><b>AVOID:</b> local anaesthetics, beta-blockers, calcium channel blockers, vasopressin.</li><li><b>Stable:</b> continue lipid for ≥15 min once haemodynamically stable. Then OBSERVE: 2 h after seizure; 4–6 h after cardiovascular instability.</li></ul>'}
+$("lr").innerHTML=h+'<p class="mu">Doses use the dosing weight ('+fl(w,1)+' kg, '+st.P.mode+'): lean-weight based in obesity, as ASRA advises. Consider a pump for infusions. Always follow your local guideline.</p>'}
+$("lseg").addEventListener("click",function(e){var m=e.target.dataset.lm;if(!m)return;LM=m;try{localStorage.setItem(SK+"Lm",m)}catch(x){}lipid()});
+function printPrep(){$("pd").textContent="Local anaesthetic dosing summary · printed "+new Date().toLocaleString("en-GB")+" · "+$("hw").textContent;$("ptr").innerHTML=TR>=0?$("trs").innerHTML:"";$("tiles").classList.toggle("nodot",!CH)}
+window.addEventListener("afterprint",function(){$("tiles").classList.remove("nodot")});
+function printPage(){var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.PrintPlugin,nat=C&&C.isNativePlatform&&C.isNativePlatform();
+if(nat){if(!P){alert("Printing needs the PrintPlugin added to the Android app.");return}try{window.dispatchEvent(new Event("beforeprint"))}catch(e){}P.print({name:"Anaesthetic plan"}).catch(function(e){alert("Could not open the print dialog: "+(e&&e.message||e))});return}
+try{window.print()}catch(e){alert("Printing is not available here. Use your browser menu to print or save as PDF.")}}
+window.addEventListener("beforeprint",function(){if(+$("u1").value||+$("u2").value)$("used").open=true;[].forEach.call(document.querySelectorAll(".cl.col"),function(c){c.classList.remove("col")});if(st.used>0)$("airwayd").open=true;$("pd").textContent="Local anaesthetic dosing summary · printed "+new Date().toLocaleString("en-GB");printPrep()});
+function copySummary(){var P=st.P,t="LOCAL ANAESTHETIC DOSING SUMMARY\nWeight "+P.w+" kg, Height "+P.h+" m, BMI "+fl(P.bmi,1)+", LBW "+fl(P.lbw,1)+" kg ("+S.lbw+")\nDosing weight: "+fl(P.wt,1)+" kg ("+P.mode+")\nAirway lidocaine used: "+fl(st.used,0)+" mg (pool "+fl(st.pool,0)+" mg)\n";
+(st.en||[]).forEach(function(a){t+=a.name+": max "+fl(st.W*a.k/a.c,1)+" ml\n"});if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual;t+="Used: "+q.u1+" ml "+q.a.name+" + "+q.u2+" ml "+q.b.name+" ("+fl((q.u1/q.m1+q.u2/q.m2)*100,0)+"% of limit)\n"}
+var L=lastData(P.wt);t+="Intralipid 20% ("+(L.as?"ASRA":"AAGBI")+"): bolus "+L.b+" ml, infusion "+(L.over?"250 ml over 15-20 min":L.inf+" ml/h")+", max "+L.cap+" ml"+"\nGenerated "+new Date().toLocaleString("en-GB")+"\n"+CFG.build.stamp;
+var f=function(){alert("Copy failed. Select text manually.")};try{navigator.clipboard.writeText(t).then(function(){alert("Summary copied")},f)}catch(e){f()}}
+function ov(n){$("ov").classList.toggle("on",!!n);if(n)buildS()}
+$("ov").addEventListener("click",function(e){if(e.target===this)ov(0)});
+document.addEventListener("keydown",function(e){if(e.key=="Escape")ov(0)});
+function sv(){try{localStorage.setItem(SK+"Set",JSON.stringify(S));localStorage.setItem(SK+"Ov",JSON.stringify(OVR));localStorage.setItem(SK+"Cu",JSON.stringify(cu))}catch(e){}}
+function row(l,i,n){return'<div class="row"><b>'+l+(n?'<br><small>'+n+'</small>':"")+'</b>'+i+'</div>'}
+function nf(f,v){return'<input type="number" step="any" data-f="'+f+'" value="'+v+'">'}
+function buildS(){var h=row("LBW formula",'<select data-f="lbw">'+[["jan","Janmahasatian"],["boer","Boer"],["james","James"],["hume","Hume"],["peters","Peters"]].map(function(o){return'<option value="'+o[0]+'"'+(S.lbw==o[0]?" selected":"")+">"+o[1]+"</option>"}).join("")+"</select>","Capped at total body weight");
+h+=row("BMI threshold",nf("bmi",S.bmi)+'<select data-f="blend"><option value="1"'+(S.blend?" selected":"")+'>Blend to LBW over 5 BMI</option><option value="0"'+(S.blend?"":" selected")+'>Strict switch to LBW</option></select>',"Above this, LBW is used (allowed 15–60)");
+h+=row("Paediatric mode",'<select data-f="pc">'+[["c91","91st centile"],["c98","98th centile"],["c996","99.6th centile"]].map(function(o){return'<option value="'+o[0]+'"'+(S.pc==o[0]?" selected":"")+">"+o[1]+"</option>"}).join("")+'</select><select data-f="lbwP">'+[["peters","Peters"],["jan","Janmahasatian"],["boer","Boer"],["james","James"],["hume","Hume"]].map(function(o){return'<option value="'+o[0]+'"'+(S.lbwP==o[0]?" selected":"")+">"+o[1]+"</option>"}).join("")+"</select>","Obesity threshold (RCPCH BMI centile for age and sex) and LBW formula. Blends to LBW over 10% of the threshold BMI.");
+h+=row("Neonatal dose reduction",nf("neoRed",S.neoRed)+'<small>%</small>',"Applied to every mg/kg limit when age is 3 months or less in paediatric mode. Default 0%: set from your local or BNFC guidance. Prilocaine is locked out at 3 months or less.");
+h+=row("Airway lidocaine total max",nf("lidoCap",S.lidoCap)+'<small>mg/kg LBW, cap</small>'+nf("lidoMax",S.lidoMax)+'<small>mg</small>',CFG.text.airwayGuideline);
+h+=row("Co-phenylcaine",nf("cpMg",S.cpMg)+'<small>mg/spray</small>'+nf("cpN",S.cpN)+'<small>sprays if unstated</small>');
+h+='<h2 style="margin-top:14px">Local anaesthetics</h2><p class="mu">Tick to enable. Edit the maximum dose (mg/kg). '+CFG.text.defaultLimitsShort+'</p>';
+A(1).forEach(function(a){if(a.cu)h+='<div class="row"><input type="checkbox" data-a="on" data-id="'+a.id+'"'+(a.on?" checked":"")+'><input class="nm" data-a="name" data-id="'+a.id+'" value="'+esc(a.name)+'" placeholder="Name"><input type="number" step="any" data-a="pct" data-id="'+a.id+'" value="'+(isFinite(a.c)?a.c/10:"")+'"><small>%</small><input type="number" step="any" data-a="k" data-id="'+a.id+'" value="'+a.k+'"><small>mg/kg</small><button data-del="'+a.id+'">✕</button>'+(a.inv?'<small style="color:var(--ert);flex-basis:100%">⚠ Needs a concentration above 0 and a valid mg/kg: excluded until fixed</small>':'')+'</div>';
+else h+='<div class="row"><input type="checkbox" data-a="on" data-id="'+a.id+'"'+(a.on?" checked":"")+'><b style="font-weight:500">'+esc(a.name)+(NEO&&a.g=="pr"?' <small>🔒 locked at 3 months or less</small>':'')+'</b><input type="number" step="any" data-a="k" data-id="'+a.id+'" value="'+a.k+'"><small>mg/kg</small></div>'});$("sg").innerHTML=h}
+$("ov").addEventListener("input",function(e){var t=e.target,f=t.dataset.f,k=t.dataset.a,id=t.dataset.id,n=parseFloat(t.value);
+if(f){if(f=="blend")S.blend=t.value=="1";else if(f=="lbw")S.lbw=t.value;else if(f=="lbwP"||f=="pc")S[f]=t.value;else if(!isNaN(n))S[f]=clampv(f,n);else return}
+else if(k){var c=cu.filter(function(z){return z.id==id})[0];if(k=="on"){if(c)c.on=t.checked;else(OVR[id]=OVR[id]||{}).on=t.checked}else if(k=="name"){if(c)c.name=t.value}else if(isNaN(n))return;else if(k=="k"){if(c)c.k=n;else(OVR[id]=OVR[id]||{}).k=n}else if(k=="pct"&&c)c.c=n*10}else return;sv();fillSel();calc()});
+$("ov").addEventListener("click",function(e){var d=e.target.dataset.del;if(d){cu=cu.filter(function(z){return z.id!=d});sv();buildS();fillSel();calc()}});
+$("addc").onclick=function(){cu.push({id:"cu"+Date.now(),name:"Custom agent",c:10,k:3,on:true});sv();buildS();fillSel();calc()};
+$("rst").onclick=function(){S=Object.assign({},D);OVR={};cu=[];sv();buildS();fillSel();calc()};
+$("tiles").addEventListener("input",function(e){var t=e.target,src=t.id=="p1"?1:t.id=="p2"?2:0;if(!src||!st.ch)return;if(t.value===""||!(+t.value>=0)){CH=null;TR=-1;$("p1").value="";$("p2").value=""}else{pick("chart");CH={k:st.ch.a.id+"|"+st.ch.b.id,src:src,val:+t.value}}calc()});
+$("wrow").addEventListener("click",function(e){var m=e.target.dataset.wm;if(!m||e.target.disabled)return;WM=m;calc()});
+document.querySelectorAll("main input:not(.pk),main select,main textarea").forEach(function(e){e.addEventListener("input",calc)});
+var CHKF=null;function chkClose(){$("chk").classList.remove("on");if(CHKF){var e=$(CHKF);CHKF=null;e.focus();try{e.select()}catch(x){}}}
+function chkOpen(id,msg){CHKF=id;$("chkm").textContent=msg;$("chk").classList.add("on");$("chkb").focus()}
+function chkField(id){var e=$(id),v=+e.value;if(!(v>0))return;
+if(id=="w"&&v>300)return chkOpen("w","A weight of "+v+" kg is implausible (over 300 kg). Calculations are paused until it is corrected.");
+if(id=="h"){var hm=v>3?v/100:v;if(hm>2.5)chkOpen("h","A height of "+(v>3?v+" cm":v+" m")+" is implausible (over 2.5 m). Check the value and units.")}
+if(id=="age"||id=="ageu"){var y=ageY();if(y>120)chkOpen("age","An age of "+fl(y,0)+" years is implausible (over 120 years). Check the value and the unit.")}}
+["w","h","age","ageu"].forEach(function(id){$(id).addEventListener("change",function(){chkField(id)})});
+$("chkb").addEventListener("click",chkClose);
+document.addEventListener("keydown",function(e){if(e.key=="Escape"&&$("chk").classList.contains("on"))chkClose()});
+fillSel();calc();
+</script></body></html>
