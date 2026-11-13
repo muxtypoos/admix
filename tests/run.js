@@ -75,6 +75,7 @@ async function coreTests(browser, org, cfg) {
     const pct = Math.round((used / usedPool - 1) * 100);
     ok(T("airway exceed -> alert shows % over"), (await ev(() => $("aw").textContent)).includes(pct + "% over"), await ev(() => $("aw").textContent));
     ok(T("airway exceed -> plan box shows % over"), (await ev(() => $("plan").textContent)).includes("by " + pct + "%"), await ev(() => $("plan").textContent));
+    ok(T("airway exceed -> % over is at the start of the plan box (not clipped)"), (await ev(() => $("plan").textContent)).slice(0, 60).includes(pct + "%"), await ev(() => $("plan").textContent));
   }
   await p.fill("#am", "");
   await ev(() => calc());

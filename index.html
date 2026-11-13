@@ -317,11 +317,11 @@ $("cwa").innerHTML='<h2 style="margin-top:14px">Maximum dosing chart</h2>'+s;$("
 function ovp(r){var x=(r-1)*100;return (x>0&&x<0.5?"<1":Math.round(x))+"%"}
 function planUpdate(){var P=st.P,pa=[],bad=false,ov="",dec=P&&P.wt<20?1:0,a;
 if(!P||!P.ok){$("plan").style.display="none";$("planp").innerHTML="";return}
-if(st.used>0){var ov0=st.pool>0&&st.used>st.pool+0.5;if(st.used>=st.pool-0.5)bad=true;pa.push('<b>'+fl(st.used,0)+' mg</b> lidocaine (airway topicalisation'+(st.used>=st.pool-0.5?', '+(ov0?'over':'at')+' the '+fl(st.pool,0)+' mg maximum'+(ov0?' by '+ovp(st.used/st.pool):''):'')+')')}
+if(st.used>0){var ov0=st.pool>0&&st.used>st.pool+0.5;if(st.used>=st.pool-0.5)bad=true;if(ov0)ov=" by "+ovp(st.used/st.pool);pa.push('<b>'+fl(st.used,0)+' mg</b> lidocaine (airway topicalisation'+(st.used>=st.pool-0.5?', '+(ov0?'over':'at')+' the '+fl(st.pool,0)+' mg maximum'+(ov0?' by '+ovp(st.used/st.pool):''):'')+')')}
 if(SEL&&st.M&&st.M[SEL]){a=st.M[SEL];var mx=fl(st.W*a.k/a.c,1);if(mx<=0)bad=true;pa.push('<b>'+mx+' ml</b> '+esc(a.name))}
 else if(CH&&st.ch&&CH.k==st.ch.a.id+"|"+st.ch.b.id){var c=st.ch,d=CH.src?1:dec,x1=fl(Math.min(CH.x,c.m1),d),y1=fl(Math.min(CH.y,c.m2),d);var fr=x1/c.m1+y1/c.m2;if(fr>1){bad=true;ov=" by "+ovp(fr)}if(x1>0)pa.push('<b>'+x1+' ml</b> '+esc(c.a.name));if(y1>0)pa.push('<b>'+y1+' ml</b> '+esc(c.b.name));if(fr<0.8)pa.push('<b>'+fl(fr*100,0)+'%</b> of max dose used')}
 else if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual,f=q.u1/q.m1+q.u2/q.m2;if(f>=1)bad=true;if(f>1)ov=" by "+ovp(f);if(q.u1)pa.push('<b>'+q.u1+' ml</b> '+esc(q.a.name)+' (given)');if(q.u2)pa.push('<b>'+q.u2+' ml</b> '+esc(q.b.name)+' (given)');pa.push(fl(f*100,0)+'% of max dose used');if(f<1)pa.push('<b>Remaining:</b> up to <b>'+fl((1-f)*q.m1,1)+' ml</b> '+esc(q.a.name)+' <u>or</u> <b>'+fl((1-f)*q.m2,1)+' ml</b> '+esc(q.b.name))}
-var h=pa.length?'<span class="pl0">Anaesthetic plan:</span> '+pa.join(', ')+(bad?' <b>\u26a0 exceeds maximum'+ov+'</b>':''):'';
+var h=pa.length?(bad?'<b>\u26a0 EXCEEDS MAXIMUM'+ov.toUpperCase()+'</b> \u00b7 ':'')+'<span class="pl0">Anaesthetic plan:</span> '+pa.join(', '):'';
 $("plan").style.display=h?"":"none";$("plan").classList.toggle("bad",!!bad);$("plan").innerHTML=h;$("planp").className="pronly"+(bad?" bad":"");$("planp").innerHTML=h}
 $("plan").addEventListener("click",function(){this.classList.toggle("x")});
 function pick(k){if(k!="single")SEL=null;if(k=="used"||k=="single"){CH=null;TR=-1;$("p1").value="";$("p2").value=""}if(k=="chart")TR=-1;if(k!="used"){$("u1").value="";$("u2").value=""}}
