@@ -13,6 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 - Every published organisation is built to `<id>/index.html` for GitHub Pages (`npm run pages`); `org.publish: false` opts out.
 - `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
 ### Changed
+- Every "over the maximum" message (airway lidocaine, chart, plan box, dual-agent, dilution) now also shows how many % over the maximum the dose is.
 - App name is fixed as `Admix - Local Anaesthetic Calculator - <short name>`; it can no longer be edited on the form.
 - Accent colour removed from the form (still available to developers in `theme`).
 - README rewritten for users; developer notes moved to `docs/MAINTAINING.md`.

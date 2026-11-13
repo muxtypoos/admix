@@ -70,6 +70,12 @@ async function coreTests(browser, org, cfg) {
   ok(T("airway exceed -> no dose left"), (await ev(() => st.W)) === 0);
   ok(T("airway exceed -> message shows maximum in mg"), /EXCEEDED THE MAXIMUM/.test(await ev(() => $("aw").textContent)) && new RegExp("maximum " + Math.floor(pool)).test(await ev(() => $("aw").textContent)), await ev(() => $("aw").textContent));
   ok(T("airway exceed -> plan box red"), await ev(() => $("plan").classList.contains("bad")));
+  {
+    const used = await ev(() => st.used), usedPool = await ev(() => st.pool);
+    const pct = Math.round((used / usedPool - 1) * 100);
+    ok(T("airway exceed -> alert shows % over"), (await ev(() => $("aw").textContent)).includes(pct + "% over"), await ev(() => $("aw").textContent));
+    ok(T("airway exceed -> plan box shows % over"), (await ev(() => $("plan").textContent)).includes("by " + pct + "%"), await ev(() => $("plan").textContent));
+  }
   await p.fill("#am", "");
   await ev(() => calc());
 
