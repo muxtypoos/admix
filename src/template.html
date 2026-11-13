@@ -105,6 +105,7 @@ input:focus,textarea:focus,select:focus{outline:0!important;box-shadow:none!impo
 svg [style*="font-size:12px"]{font-size:12px!important}
 #planp{grid-area:q;margin:0;padding:4px 8px;border:1px solid #1e7e46;background:#e6f6ec!important;color:#14532d;border-radius:4px;font-size:11px;line-height:1.4}#planp.bad{background:#fde8e8!important;color:#8b1a1a;border-color:#c62828}#planp:empty{display:none!important}.selbox{padding:3px 6px;margin-top:4px;font-size:9px}
 }
+#wkd{margin:8px 0 12px;border:1px solid var(--bd);border-radius:12px;padding:2px 12px}#wk ol{padding-left:18px;margin:6px 0}#wk li{margin:12px 0}#wk li>b:first-child{display:block;margin-bottom:2px}#wk .f{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--bg);border-radius:6px;padding:2px 6px;display:inline-block;margin:2px 0}#wk table{font-size:12px}#wk ul{margin:4px 0;padding-left:18px}
 #plan{flex:1 0 100%;background:#2e9d5f;color:#fff;border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.4}#plan.bad{background:#c62828}#plan b{font-size:16px}#plan .pl0{font-weight:700}
 .selbox{background:var(--ok);color:var(--okt);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px}.selbox.bad{background:var(--er);color:var(--ert)}
 header{padding:6px 10px;gap:6px;flex-wrap:wrap}header b{font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#hbtn{display:flex;gap:6px}#hbtn button{min-height:36px;min-width:36px;padding:0 9px;font-size:15px}.bt{display:none;font-size:14px}@media(min-width:560px){.bt{display:inline}}
@@ -162,7 +163,7 @@ html.paed:root[data-theme="dark"] header{background:linear-gradient(135deg,#7a00
 </main>
 
 <div class="ov" id="chk" style="z-index:40"><div class="card" style="max-width:380px;margin-top:15vh"><h2>⚠️ Please check this value</h2><p id="chkm"></p><button id="chkb" style="background:var(--pr);color:#fff;width:100%;min-height:44px">Correct it</button></div></div>
-<div class="ov" id="ov"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Expert settings</h2><button onclick="ov(0)">Close</button></div><div id="sg"></div>
+<div class="ov" id="ov"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Expert settings</h2><button onclick="ov(0)">Close</button></div><details id="wkd"><summary>Show working</summary><p class="mu">Every step behind the numbers on screen, using the patient and settings entered now. It updates as you change them.</p><div id="wk"></div></details><div id="sg"></div>
 <p><button id="addc">+ Add custom local anaesthetic</button> <button id="rst">Reset all to defaults</button></p>
 <details><summary>Formulas &amp; references</summary>
 <p><b>LBW (kg, H in cm, W in kg, always capped at TBW):</b> Janmahasatian: M 9270W/(6680+216·BMI), F 9270W/(8780+244·BMI). Boer: M 0.407W+0.267H−19.2, F 0.252W+0.473H−48.3. James: M 1.1W−128(W/H)², F 1.07W−148(W/H)². Hume: M 0.3281W+0.33929H−29.5336, F 0.29569W+0.41813H−43.2933. Peters: 3.8×0.0215×W^0.6469×H^0.7236.</p>
@@ -186,7 +187,8 @@ function A(raw){var f=(NEO&&!raw)?1-Math.min(90,Math.max(0,S.neoRed||0))/100:1,f
 return BASE.map(function(b){var o=OVR[b[0]]||{},k=fin(o.k)&&o.k>=0?o.k:b[3],on=o.on!=null?!!o.on:!!b[5];if(NEO&&!raw&&b[4]=="pr")on=false;return{id:b[0],name:b[1],c:b[2],k:k*f,g:b[4],on:on}}).concat(cu.map(function(c){var inv=!(fin(c.c)&&c.c>0)||!(fin(c.k)&&c.k>=0);return{id:String(c.id),name:String(c.name||"Custom"),c:raw?c.c:(inv?10:c.c),k:(fin(c.k)&&c.k>=0?c.k:0)*(raw?1:f),g:String(c.id),on:!inv&&c.on!==false,cu:1,inv:inv}}))}
 var $=function(i){return document.getElementById(i)},fl=function(v,d){var m=Math.pow(10,d==null?1:d);return Math.floor(v*m+1e-9)/m};
 var st={},CH=null;
-function lbwF(w,hm,male,bmi){var H=hm*100,r;switch(PM?S.lbwP:S.lbw){case"boer":r=male?.407*w+.267*H-19.2:.252*w+.473*H-48.3;break;case"james":r=male?1.1*w-128*Math.pow(w/H,2):1.07*w-148*Math.pow(w/H,2);break;case"hume":r=male?.3281*w+.33929*H-29.5336:.29569*w+.41813*H-43.2933;break;case"peters":r=3.8*.0215*Math.pow(w,.6469)*Math.pow(H,.7236);break;default:r=male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi)}if(!(r>=0.25*w))r=male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi);return Math.max(0,Math.min(w,r))}
+function lbwRaw(f,w,H,male,bmi){switch(f){case"boer":return male?.407*w+.267*H-19.2:.252*w+.473*H-48.3;case"james":return male?1.1*w-128*Math.pow(w/H,2):1.07*w-148*Math.pow(w/H,2);case"hume":return male?.3281*w+.33929*H-29.5336:.29569*w+.41813*H-43.2933;case"peters":return 3.8*.0215*Math.pow(w,.6469)*Math.pow(H,.7236);default:return male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi)}}
+function lbwF(w,hm,male,bmi){var H=hm*100,r=lbwRaw(PM?S.lbwP:S.lbw,w,H,male,bmi);if(!(r>=0.25*w))r=lbwRaw("jan",w,H,male,bmi);return Math.max(0,Math.min(w,r))}
 var PM=false,PDIS=false,WM="auto";try{var pp=JSON.parse(localStorage.getItem(SK+"Pt")||"{}");if(pp.wm)WM=pp.wm;PM=!!pp.pm;PDIS=!!pp.pdis;if(pp.au){var ue=document.getElementById("ageu");ue.value=pp.au;ue.dataset.u=pp.au}}catch(e){}
 var CEN=@@json:cen@@,CAL=@@json:cal@@;
 var IMG={F:"@@img:bmiGirls@@",M:"@@img:bmiBoys@@"};
@@ -256,7 +258,7 @@ if(r.skip){if(OTH.test(s0.toLowerCase())){ot.push(s0);return}if(/\d/.test(s0)&&l
 var r2=segParse("lidocaine "+s0);if(!r2.skip&&!r2.bad){r2.fl=r2.fl.concat(["drug name not stated: assumed lidocaine"]);items.push(r2);last={text:"lidocaine "+s0,r:r2,C:false};return}}
 sk.push(s0);return}
 items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
-var tot=0,h="";items.forEach(function(r){tot+=r.mg;h+='<tr class="'+(r.bad?"e":r.fl.length?"w":"")+'"><td>'+esc(r.label)+(r.fl.length?'<div class="mu">'+esc(r.fl.join("; "))+"</div>":"")+'</td><td class=r><b>'+fl(r.mg,0)+" mg</b></td></tr>"});
+st.airItems=items.map(function(r){return r.label+": "+fl(r.mg,0)+" mg"+(r.fl.length?" ("+r.fl.join("; ")+")":"")});var tot=0,h="";items.forEach(function(r){tot+=r.mg;h+='<tr class="'+(r.bad?"e":r.fl.length?"w":"")+'"><td>'+esc(r.label)+(r.fl.length?'<div class="mu">'+esc(r.fl.join("; "))+"</div>":"")+'</td><td class=r><b>'+fl(r.mg,0)+" mg</b></td></tr>"});
 var un=sk.filter(function(s){return /\d/.test(s)}),ig=sk.filter(function(s){return !/\d/.test(s)}).concat(ot);
 un.forEach(function(s){h+='<tr class="e"><td>'+esc(s)+'<div class="mu">no drug name found: NOT counted</div></td><td class=r><b>?</b></td></tr>'});
 if(h)h='<table>'+h+'</table><p class="mu">Please double check that these amounts and calculations are correct against the procedure record before relying on them.</p>';
@@ -283,7 +285,7 @@ var aw="";if(used>0){aw='<div class="alert'+(used>=pool-0.5?" e":"")+'">'+(used>
 st.en=A().filter(function(a){return a.on});st.M={};st.en.forEach(function(a){st.M[a.id]=a});
 var rows="<tr><th>Agent</th><th class=r>Max ml</th><th class=\"r sm\">Max mg</th><th class=\"r sm\">mg/kg</th></tr>";
 st.en.forEach(function(a){var mx=fl(W*a.k/a.c,1),mg=fl(mx*a.c,0),c=!P.ok?"":fr<=0||mx<=0?"e":fr<1?"w":"";rows+='<tr data-a="'+a.id+'" tabindex="0" class="'+c+(a.id==SEL?' hl':'')+'"><td>'+(c=="e"?"⛔ ":c=="w"?"⚠️ ":"")+esc(a.name)+'</td><td class=r><b class="pill">'+(P.ok?mx:"—")+'</b></td><td class="r sm">'+(P.ok?mg:"—")+'</td><td class="r sm">'+a.k+"</td></tr>"});$("tb").innerHTML=rows;sasText();
-dual();dil();lipid();planUpdate();try{localStorage.setItem(SK+"Pt",JSON.stringify({w:$("w").value,h:$("h").value,s:$("s").value,age:$("age").value,au:$("ageu").value,wm:WM,pm:PM,pdis:PDIS}))}catch(e){}}
+dual();dil();lipid();planUpdate();if($("ov").classList.contains("on"))working();try{localStorage.setItem(SK+"Pt",JSON.stringify({w:$("w").value,h:$("h").value,s:$("s").value,age:$("age").value,au:$("ageu").value,wm:WM,pm:PM,pdis:PDIS}))}catch(e){}}
 function M(a){return st.W*a.k/a.c}
 function dual(){var a=st.M[$("d1").value],b=st.M[$("d2").value];st.dual=null;st.ch=null;
 if(!st.P.ok){$("dr").innerHTML='<p class=mu>Enter patient details.</p>';$("cw").style.display="none";$("ur").innerHTML="";return}
@@ -384,7 +386,68 @@ function copySummary(){var P=st.P,t="LOCAL ANAESTHETIC DOSING SUMMARY\nWeight "+
 (st.en||[]).forEach(function(a){t+=a.name+": max "+fl(st.W*a.k/a.c,1)+" ml\n"});if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual;t+="Used: "+q.u1+" ml "+q.a.name+" + "+q.u2+" ml "+q.b.name+" ("+fl((q.u1/q.m1+q.u2/q.m2)*100,0)+"% of limit)\n"}
 var L=lastData(P.wt);t+="Intralipid 20% ("+(L.as?"ASRA":"AAGBI")+"): bolus "+L.b+" ml, infusion "+(L.over?"250 ml over 15-20 min":L.inf+" ml/h")+", max "+L.cap+" ml"+"\nGenerated "+new Date().toLocaleString("en-GB")+"\n"+CFG.build.stamp;
 var f=function(){alert("Copy failed. Select text manually.")};try{navigator.clipboard.writeText(t).then(function(){alert("Summary copied")},f)}catch(e){f()}}
-function ov(n){$("ov").classList.toggle("on",!!n);if(n)buildS()}
+function working(){var el=$("wk");if(!el)return;var P=st.P;
+if(!P||!P.ok){el.innerHTML='<p class="mu">Enter the patient’s weight and the working appears here.</p>';return}
+var n=function(v,d){return String(+(+v).toFixed(d==null?2:d))},o=[],T=function(t,b){o.push("<li><b>"+t+"</b>"+b+"</li>")},F=function(s){return'<span class="f">'+s+"</span>"};
+var NM={jan:"Janmahasatian",boer:"Boer",james:"James",hume:"Hume",peters:"Peters"},male=P.sx=="M",ay=P.age;
+/* 1 patient */
+var b="Weight "+n(P.w)+" kg. Height "+(P.h?n(P.h,2)+" m":"not entered")+". Sex: "+(male?"male":"female")+". "+(ay>0?"Age "+n(ay,2)+" years"+(PM?" (entered age converted to years)":"")+". ":"Age not entered. ")+(PM?"Paediatric mode is on.":"Adult mode.");
+if(P.h)b+="<br>"+F("BMI = weight ÷ height² = "+n(P.w)+" ÷ "+n(P.h,2)+"² = "+n(P.bmi,1)+" kg/m²");
+T("1. Patient",b);
+/* 2 LBW */
+if(P.h){var fm=PM?S.lbwP:S.lbw,H=P.h*100,W=P.w,sym={jan:male?"9270 × W ÷ (6680 + 216 × BMI)":"9270 × W ÷ (8780 + 244 × BMI)",boer:male?"0.407 × W + 0.267 × H − 19.2":"0.252 × W + 0.473 × H − 48.3",james:male?"1.1 × W − 128 × (W ÷ H)²":"1.07 × W − 148 × (W ÷ H)²",hume:male?"0.3281 × W + 0.33929 × H − 29.5336":"0.29569 × W + 0.41813 × H − 43.2933",peters:"3.8 × 0.0215 × W^0.6469 × H^0.7236"},raw=lbwRaw(fm,W,H,male,P.bmi);
+b="Formula: "+NM[fm]+" ("+(male?"male":"female")+")"+(PM?" (paediatric choice)":"")+".<br>"+F("LBW = "+sym[fm])+"<br>with W = "+n(W)+" kg (total body weight), H = "+n(H,1)+" cm, BMI = "+n(P.bmi,1)+".<br>Result before limits: "+n(raw)+" kg.";
+if(!(raw>=0.25*W))b+="<br>This is below 25% of total body weight, which is implausible, so Janmahasatian is used instead.";
+b+="<br>LBW is never allowed to exceed total body weight, and never below 0. <b>LBW used = "+n(P.lbw)+" kg.</b>";T("2. Lean body weight (LBW)",b)}
+else T("2. Lean body weight (LBW)","No height was entered, so LBW cannot be calculated. Total body weight is used for everything.");
+/* 3 dosing weight */
+b="";var m=P.mode;
+if(m=="LBW (manual)")b="Lean body weight was selected manually, so the dosing weight is the LBW.";
+else if(m=="TBW (manual)"||(m=="TBW"&&WM=="tbw"))b="Total body weight was selected manually, so the dosing weight is the TBW.";
+else if(P.noh)b="No height was entered, so total body weight (TBW) is used.";
+else if(P.tbwOnly)b="Paediatric mode needs an age from 2 to 20 years to use the RCPCH BMI centiles. "+(ay>0&&ay<2?"The child is under 2 years":ay>20?"The age is over 20 years":"No age has been entered")+", so total body weight (TBW) is used.";
+else{var Tt=PM?P.thr:S.bmi,bw=PM?Tt*0.1:5;
+b=(PM?"Paediatric mode: the BMI threshold is the "+({c91:"91st",c98:"98th",c996:"99.6th"}[S.pc])+" centile for a "+n(ay,2)+"-year-old "+(male?"boy":"girl")+" = "+n(Tt,1)+" kg/m² (read from the RCPCH chart). The blend zone is 10% of the threshold = "+n(bw,1)+".":"Adult mode: the BMI threshold is "+n(Tt,1)+" kg/m² (Expert setting). The blend zone is "+n(bw,1)+" BMI points"+(S.blend?".":", but the strict option is on, so there is no blend zone."))+"<br>Patient BMI "+n(P.bmi,1)+" is ";
+if(P.bmi<Tt)b+="below the threshold, so total body weight (TBW) is used.";
+else if(S.blend&&P.bmi<Tt+bw)b+="within the blend zone ("+n(Tt,1)+" to "+n(Tt+bw,1)+"), so the weight moves from TBW towards LBW.<br>"+F("dosing weight = TBW + (LBW − TBW) × (BMI − threshold) ÷ blend zone = "+n(P.w)+" + ("+n(P.lbw)+" − "+n(P.w)+") × ("+n(P.bmi,1)+" − "+n(Tt,1)+") ÷ "+n(bw,1)+" = "+n(P.wt)+" kg");
+else b+="above the threshold"+(S.blend?" and the blend zone":"")+", so lean body weight (LBW) is used."}
+T("3. Dosing weight","Mode: <b>"+esc(m)+"</b>.<br>"+b+"<br><b>Dosing weight = "+n(P.wt,1)+" kg</b>");
+/* 4 neonate */
+if(NEO)T("4. Neonate adjustments","Age is 3 months or under in paediatric mode. Every mg/kg limit is multiplied by (1 − "+n(S.neoRed,0)+"% ÷ 100) = "+n(1-Math.min(90,Math.max(0,S.neoRed||0))/100,2)+". Prilocaine is locked out.");
+/* 5 airway */
+var pb=P.lbw||P.w,pool=st.pool,used=st.used,fr=st.fr;
+b="Pool = "+(P.lbw?"lean body weight":"total body weight (no height entered)")+" × "+n(S.lidoCap,1)+" mg/kg, capped at "+n(S.lidoMax,0)+" mg.<br>"+F(n(pb,1)+" × "+n(S.lidoCap,1)+" = "+n(pb*S.lidoCap,0)+" mg → pool = "+n(pool,0)+" mg");
+if(used>0){var ai=(st.airItems||[]).map(function(x){return"<li>"+esc(x)+"</li>"}).join(""),mn=+$("am").value||0;
+b+="<br>Airway lidocaine entered:"+(ai?"<ul>"+ai+"</ul>":" ")+(mn?"Manual entry: "+n(mn,0)+" mg.<br>":"")+"Total used = "+n(used,1)+" mg.<br>"+F("remaining fraction = (pool − used) ÷ pool = ("+n(pool,0)+" − "+n(used,1)+") ÷ "+n(pool,0)+" = "+n(fr*100,0)+"%")+"<br>"+F("weight for all other doses = dosing weight × remaining fraction = "+n(P.wt,1)+" × "+n(fr,3)+" = "+n(st.W,1)+" kg")}
+else b+="<br>No airway lidocaine entered, so 100% of the dosing weight is available: "+n(st.W,1)+" kg.";
+T("5. Airway lidocaine pool",b);
+/* 6 single agent */
+b="Max mg = weight for doses × limit (mg/kg). Max ml = max mg ÷ mg per ml, rounded <b>down</b> to 0.1 ml. Weight for doses = "+n(st.W,2)+" kg.";
+var raw0={};A(1).forEach(function(a){raw0[a.id]=a.k});
+b+='<div style="overflow-x:auto"><table><tr><th>Agent</th><th class="r">mg/ml</th><th class="r">limit mg/kg</th><th>Working</th><th class="r">max ml</th></tr>';
+st.en.forEach(function(a){var mx=fl(st.W*a.k/a.c,1),lim=NEO&&raw0[a.id]!==a.k?n(raw0[a.id],2)+" × "+n(a.k/raw0[a.id],2)+" = "+n(a.k,2):n(a.k,2);b+='<tr><td>'+esc(a.name)+'</td><td class="r">'+n(a.c,2)+'</td><td class="r">'+lim+'</td><td class="mu">'+n(st.W,1)+" × "+n(a.k,2)+" = "+n(st.W*a.k,0)+" mg ÷ "+n(a.c,2)+" = "+n(st.W*a.k/a.c,2)+'</td><td class="r"><b>'+mx+"</b></td></tr>"});
+b+="</table></div>";T("6. Single agent maximum doses",b);
+/* 7 dual */
+var q=st.dual;
+if(q){b="Each agent has its own maximum (step 6): "+esc(q.a.name)+" "+n(fl(q.m1,1),1)+" ml, "+esc(q.b.name)+" "+n(fl(q.m2,1),1)+" ml.<br>When two agents are given together the fractions of each limit add up. The total must stay at or below 100%:<br>"+F("ml of agent 1 ÷ max 1 + ml of agent 2 ÷ max 2 ≤ 1")+"<br>The maximum chart line and the chart tap use this rule.<br>Maximum total of a 1:1 mixture: "+F("2 × max1 × max2 ÷ (max1 + max2) = 2 × "+n(q.m1,2)+" × "+n(q.m2,2)+" ÷ ("+n(q.m1,2)+" + "+n(q.m2,2)+") = "+n(q.mix,1)+" ml");
+if(q.u1||q.u2){var f=q.u1/q.m1+q.u2/q.m2;b+="<br>Used so far: "+n(q.u1,1)+" ml + "+n(q.u2,1)+" ml.<br>"+F("fraction used = "+n(q.u1,1)+" ÷ "+n(q.m1,2)+" + "+n(q.u2,1)+" ÷ "+n(q.m2,2)+" = "+n(f*100,0)+"%")+(f<1?"<br>Remaining: up to "+n(fl((1-f)*q.m1,1),1)+" ml of agent 1, or "+n(fl((1-f)*q.m2,1),1)+" ml of agent 2 (not both).":"<br>The limit is reached or exceeded"+(f>1?" by "+ovp(f):"")+".")}
+T("7. Dual agent",b)}
+else T("7. Dual agent","Not shown: two different agents with a safe dose remaining are needed.");
+/* 8 dilution */
+var ka=st.M[$("k1").value],kb=st.M[$("k2").value],V=+$("kv").value||0;
+if(ka&&kb&&ka.c>kb.c&&V>0){var hf=fl(V*kb.c/ka.c,1),df=Math.round((V-hf)*100)/100,ach=hf*ka.c/V/10;
+T("8. Dilution",F("volume of stock = final volume × desired mg/ml ÷ available mg/ml = "+n(V)+" × "+n(kb.c,2)+" ÷ "+n(ka.c,2)+" = "+n(V*kb.c/ka.c,2)+" ml → "+hf+" ml (rounded down)")+"<br>"+F("diluent = final volume − stock = "+n(V)+" − "+hf+" = "+df+" ml")+"<br>Resulting strength = "+hf+" × "+n(ka.c,2)+" ÷ "+n(V)+" = "+n(ach*10,2)+" mg/ml ("+n(ach,3)+"%), target "+n(kb.c/10,3)+"%.<br>Total drug in the final volume: "+n(V*kb.c,0)+" mg, compared with the patient’s limit for the desired agent of "+n(st.W*kb.k,0)+" mg.")}
+else T("8. Dilution","Not shown: choose an available and a lower desired concentration and a final volume.");
+/* 9 LAST */
+var L=lastData(P.wt),as=L.as;
+T("9. Lipid rescue (LAST)","Guideline shown: "+(as?"ASRA":"AAGBI")+". These doses use the dosing weight ("+n(P.wt,1)+" kg), not the airway-scaled weight, because rescue must not be reduced.<br>"+F("bolus = weight × "+n(S.bolus,2)+" ml/kg = "+n(P.wt*S.bolus,0)+" ml"+(as&&P.wt>70?" → ASRA fixed bolus of 100 ml over 70 kg":as&&P.wt*S.bolus>100?" → capped at 100 ml (ASRA)":""))+"<br>"+F("infusion = weight × "+n(S.inf,2)+" ml/kg/h = "+n(L.inf,0)+" ml/h")+"<br>"+F("double infusion = infusion × "+n(S.mult,2)+" = "+n(L.dbl,0)+" ml/h")+"<br>"+F("maximum cumulative = weight × "+n(S.cap,2)+" ml/kg = "+n(L.cap,0)+" ml"));
+/* 10 alerts */
+b="";if(used>pool+0.5)b+="Airway lidocaine is over its maximum:<br>"+F("over by = (used ÷ pool − 1) × 100 = ("+n(used,1)+" ÷ "+n(pool,0)+" − 1) × 100 = "+ovp(used/pool))+"<br>";
+if(q&&(q.u1||q.u2)&&q.u1/q.m1+q.u2/q.m2>1)b+="The dual-agent fraction is above 100%:<br>"+F("over by = (fraction − 1) × 100 = "+ovp(q.u1/q.m1+q.u2/q.m2))+"<br>";
+T("10. Warnings",b||"Nothing is over a maximum at the moment. If it is, the amount over appears here as: (amount used ÷ maximum − 1) × 100, and the plan box at the top turns red.");
+o.push('<li><b>Rounding</b>Volumes are rounded down to 0.1 ml and milligram doses down to whole numbers, so a displayed dose is never above the calculated limit. Numbers shown in this working are rounded for display only.</li>');
+el.innerHTML="<ol>"+o.join("")+"</ol>"}
+function ov(n){$("ov").classList.toggle("on",!!n);if(n){buildS();working()}}
 $("ov").addEventListener("click",function(e){if(e.target===this)ov(0)});
 document.addEventListener("keydown",function(e){if(e.key=="Escape")ov(0)});
 function sv(){try{localStorage.setItem(SK+"Set",JSON.stringify(S));localStorage.setItem(SK+"Ov",JSON.stringify(OVR));localStorage.setItem(SK+"Cu",JSON.stringify(cu))}catch(e){}}

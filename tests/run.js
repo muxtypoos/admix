@@ -154,6 +154,24 @@ async function coreTests(browser, org, cfg) {
   ok(T("prints on one page"), pages === 1, pages);
 
   ok(T("no console or page errors"), p.errs.length === 0, p.errs);
+
+  // show working: every step present, and its numbers agree with the main screen
+  await setPt(p, 120, 175, "Male", "");
+  await p.fill("#at", "4ml 4% lignocaine nebulised");
+  await ev(() => { calc(); ov(1); $("wkd").open = true; });
+  const wk = await ev(() => $("wk").innerText);
+  for (const h of ["1. Patient", "2. Lean body weight", "3. Dosing weight", "5. Airway lidocaine pool", "6. Single agent", "7. Dual agent", "9. Lipid rescue", "10. Warnings", "Rounding"])
+    ok(T("show working has step: " + h), wk.includes(h), wk.slice(0, 200));
+  const agree = await ev(() => {
+    const main = {}; [].forEach.call(document.querySelectorAll("#tb tr[data-a]"), (r) => { main[r.dataset.a] = r.children[1].innerText.trim(); });
+    const w = {}; [].forEach.call(document.querySelectorAll("#wk table tr"), (r, i) => { if (i) w[r.children[0].innerText.trim()] = r.children[4].innerText.trim(); });
+    return st.en.every((a) => String(w[a.name]) === String(main[a.id]));
+  });
+  ok(T("show working: step 6 max ml equals the main table for every agent"), agree);
+  ok(T("show working sits at the top of Expert settings"), await ev(() => $("wkd").compareDocumentPosition($("sg")) & Node.DOCUMENT_POSITION_FOLLOWING));
+  await p.fill("#at", "");
+  await ev(() => ov(0));
+  ok(T("show working: no script errors"), p.errs.length === 0, p.errs.join("; "));
   await p.close();
 }
 

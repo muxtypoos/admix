@@ -6,6 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 
 ## [Unreleased]
 ### Added
+- "Show working" section at the top of Expert settings: walks through every step behind the numbers on screen (patient, lean body weight, dosing weight, neonatal adjustment, airway pool, single and dual agent maximums, dilution, lipid rescue, warnings and rounding), using the live patient and settings. Tests check it agrees with the main table.
 - Request form for organisations: one-page Excel workbook (`Admix-request-form.xlsx`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
 - Hands-off requests: submitting the Excel form as a GitHub issue builds the organisation, runs the tests and opens a pull request for review (`.github/workflows/organisation-request.yml`, `scripts/handle_request.py`).
 - Short name or abbreviation (e.g. NCIC) on the form, now required: it becomes the organisation's online link (`<site>/ncic/`) and its app name.
