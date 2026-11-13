@@ -259,7 +259,7 @@ items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
 var tot=0,h="";items.forEach(function(r){tot+=r.mg;h+='<tr class="'+(r.bad?"e":r.fl.length?"w":"")+'"><td>'+esc(r.label)+(r.fl.length?'<div class="mu">'+esc(r.fl.join("; "))+"</div>":"")+'</td><td class=r><b>'+fl(r.mg,0)+" mg</b></td></tr>"});
 var un=sk.filter(function(s){return /\d/.test(s)}),ig=sk.filter(function(s){return !/\d/.test(s)}).concat(ot);
 un.forEach(function(s){h+='<tr class="e"><td>'+esc(s)+'<div class="mu">no drug name found: NOT counted</div></td><td class=r><b>?</b></td></tr>'});
-if(h)h='<table>'+h+'</table><p class="mu">Parsed by: '+src+'. Check assumptions against the procedure record.'+'</p>';
+if(h)h='<table>'+h+'</table><p class="mu">Please double check that these amounts and calculations are correct against the procedure record before relying on them.</p>';
 if(ig.length)h+='<p class="mu">Ignored (not lidocaine): '+esc(ig.join(" | "))+"</p>";$("ab").innerHTML=h;return tot}
 $("pmgo").onclick=function(){PM=true;PDIS=false;WM="auto";calc()};$("pmx").onclick=function(){var y=ageY();$("age").value=y?+y.toFixed(2):"";$("ageu").value="y";$("ageu").dataset.u="y";PM=false;PDIS=false;WM="auto";calc()};
 $("ageu").addEventListener("change",function(){var f={d:1/365.25,w:7/365.25,m:1/12,y:1},o=this.dataset.u||"y",v=+$("age").value;if(v>0){var n=v*f[o]/f[this.value];$("age").value=+n.toFixed(2)}this.dataset.u=this.value;calc()});
