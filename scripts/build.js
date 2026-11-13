@@ -82,6 +82,7 @@ function validate(cfg) {
   if (!/^[a-z0-9-]+$/.test(cfg.org.id)) bad("org.id must be lower-case letters, digits or -");
   if (!cfg.org.name) bad("org.name is required");
   if (!cfg.org.title) bad("org.title is required");
+  if (cfg.org.shortName && !/^[A-Za-z0-9 &.-]{1,12}$/.test(cfg.org.shortName)) bad("org.shortName must be 1-12 letters, digits, spaces, & . or -");
   for (const k of ["primary", "primaryDark"])
     if (!/^#[0-9a-fA-F]{6}$/.test(cfg.theme[k] || "")) bad(`theme.${k} must be a #rrggbb colour`);
   const d = cfg.defaults;

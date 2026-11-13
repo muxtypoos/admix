@@ -6,7 +6,8 @@
   "name": "Admix",
   "title": "Admix - Local Anaesthetic Calculator",
   "contactName": "",
-  "contactEmail": ""
+  "contactEmail": "",
+  "shortName": ""
  },
  "theme": {
   "primary": "#0b6bcb",

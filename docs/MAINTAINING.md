@@ -116,3 +116,16 @@ each has its own app name/ID. The native `PrintPlugin` stays in your Android pro
 Distributing this to other organisations may make it clinical decision-support software, which can bring UK clinical
 safety standards (DCB0129 / DCB0160) and possibly MHRA medical-device rules. Versioning, change tracking and sign-off here are
 the groundwork; check early with your clinical safety / digital governance lead.
+
+## Automatic handling of request forms (GitHub)
+
+`.github/workflows/organisation-request.yml` runs when an issue made from the "Submit your organisation's request form"
+template is opened or edited. It downloads the attached `.xlsx`, converts it with `scripts/handle_request.py`, builds and tests
+every organisation, then opens a pull request on branch `request/<org>-<issue number>` and comments on the issue.
+If the form has problems it comments with what to fix instead. Nothing is merged automatically: a reviewer checks the doses,
+records sign-off in `orgs/<org>/SIGNOFF.md`, handles the free-text requests in `REQUEST-NOTES.md`, then merges.
+
+One-off setting needed: **Settings, Actions, General, Workflow permissions**: choose "Read and write permissions" and tick
+"Allow GitHub Actions to create and approve pull requests". Pull requests opened by the workflow do not trigger the normal
+`build-and-test` workflow, which is why the request workflow runs the full tests itself.
+Reserved ids (`default`, `example-hospital`) are refused. Wording from forms is HTML-escaped. Attachments over 2 MB are refused.

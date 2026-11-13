@@ -10,7 +10,7 @@ We can set up your own list of local anaesthetics and maximum doses, your prefer
 
 1. Fill in the request form. It is already filled in with the current defaults, so you only change what you need:
    - **Excel (easiest):** download [Admix-request-form.xlsx](Admix-request-form.xlsx), fill it in and email it to Dr George Lui, george.lui@nhs.net.
-   - **On GitHub:** Issues, then New issue, then "Request a version for your organisation".
+   - **On GitHub:** Issues, then New issue, then "Submit your organisation's request form", and drag your completed file into the box. An automatic check reads it and prepares your version for review; if something in the form needs fixing, a reply on your request tells you what.
 2. We build it and send you a link for review.
 3. Your clinical lead checks and signs off the doses and wording.
 4. We send you the final link (and the Android app if you want one).

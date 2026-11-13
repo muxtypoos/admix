@@ -1,0 +1,25 @@
+name: Submit your organisation's request form
+description: Attach your completed Admix-request-form.xlsx and we will build your version.
+title: "Version request: "
+labels: ["organisation-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        1. Download **Admix-request-form.xlsx** from the front page of this repository and fill it in.
+        2. Drag the completed file into the box below.
+        3. Submit. An automatic check reads the form and prepares your version for review. If something in the form needs fixing, a reply will tell you what.
+  - type: textarea
+    id: form
+    attributes:
+      label: Your completed request form
+      description: Drag and drop your Admix-request-form.xlsx here.
+    validations:
+      required: true
+  - type: checkboxes
+    id: signoff
+    attributes:
+      label: Sign-off
+      options:
+        - label: I understand that my organisation's clinical lead must check and sign off these doses and wording before the app is used with patients.
+          required: true

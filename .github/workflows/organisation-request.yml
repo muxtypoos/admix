@@ -1,0 +1,74 @@
+name: organisation-request
+# When someone submits the Excel request form as an issue, read it, build their version,
+# run the tests, and open a pull request for review. Nothing is merged automatically.
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  prepare:
+    if: contains(github.event.issue.labels.*.name, 'organisation-request')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: pip install openpyxl
+      - name: Read the attached form
+        id: read
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          python3 scripts/handle_request.py > out.txt
+          code=$?
+          cat out.txt
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          grep '^org=' out.txt >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Tell the requester what is wrong
+        if: steps.read.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue comment ${{ github.event.issue.number }} --body-file /tmp/request-result.md
+      - name: Build and test their version
+        if: steps.read.outputs.code == '0'
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+          npm test
+      - name: Open a pull request
+        if: steps.read.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG: ${{ steps.read.outputs.org }}
+          N: ${{ github.event.issue.number }}
+        run: |
+          branch="request/${ORG}-${N}"
+          git config user.name "admix-bot"
+          git config user.email "admix-bot@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add "orgs/${ORG}"
+          git commit -m "config(${ORG}): new organisation from request #${N}"
+          git push --force origin "$branch"
+          {
+            echo "Created from request #${N}. Please review the doses and wording, then merge."
+            echo
+            cat /tmp/request-result.md
+            echo
+            echo "Checks run: config validation, build of every organisation, regression tests."
+            echo
+            echo "Closes #${N} when merged (reviewer: record sign-off in orgs/${ORG}/SIGNOFF.md first)."
+          } > /tmp/pr.md
+          if gh pr view "$branch" >/dev/null 2>&1; then
+            gh pr edit "$branch" --body-file /tmp/pr.md
+          else
+            gh pr create --head "$branch" --base main --title "Version for ${ORG} (request #${N})" --body-file /tmp/pr.md
+          fi
+          gh issue comment "$N" --body "Thanks. Your version has been built and tests pass. It is now waiting for review: $(gh pr view "$branch" --json url --jq .url)"

@@ -10,6 +10,7 @@ The organisation request form (Excel).
 
 Needs openpyxl (pip install openpyxl).
 """
+import html
 import json
 import re
 import sys
@@ -73,7 +74,7 @@ def wording_rows():
     ]
 
 
-ORG_LABELS = ["Organisation name", "Contact name", "Contact email", "App name (shown in the title bar)",
+ORG_LABELS = ["Organisation name", "Short name or abbreviation (e.g. NCIC)", "Contact name", "Contact email", "App name (shown in the title bar)",
               "Accent colour (hex, e.g. #0b6bcb)", "Clinical sign-off"]
 SIGNOFF = "My organisation's clinical lead will check and sign off these doses and wording before the app is used with patients."
 
@@ -138,7 +139,7 @@ def make(out):
 
     # 1 organisation
     section(SECTIONS[0])
-    vals = ["", "", "", BASE["org"]["title"], BASE["theme"]["primary"], "No"]
+    vals = ["", "", "", "", BASE["org"]["title"], BASE["theme"]["primary"], "No"]
     for lab, v in zip(ORG_LABELS, vals):
         ws.cell(row=r, column=1, value=lab).font = Font(bold=True)
         wide_input(r, v)
@@ -302,13 +303,16 @@ def read(path, org_id=None):
     name = g("Organisation name")
     if not name:
         errs.append("Organisation name is empty")
-    org_id = org_id or slug(name or "")
+    short = g("Short name or abbreviation (e.g. NCIC)") or ""
+    if short and not re.fullmatch(r"[A-Za-z0-9 &.-]{1,12}", short):
+        errs.append("Short name must be 1-12 letters, digits, spaces, & . or -")
+    org_id = org_id or slug(short or name or "")
     if not org_id:
         errs.append("could not make an organisation id (give --id)")
     title_cell = g("App name (shown in the title bar)") or BASE["org"]["title"]
     if title_cell == BASE["org"]["title"] and name:
-        title_cell = f"{name} - Local Anaesthetic Calculator"
-    cfg["org"] = {"id": org_id, "name": name or "", "title": title_cell,
+        title_cell = f"{short or name} - Local Anaesthetic Calculator"
+    cfg["org"] = {"id": org_id, "name": name or "", "shortName": short, "title": title_cell,
                   "contactName": g("Contact name") or "", "contactEmail": g("Contact email") or ""}
     colour = (g("Accent colour (hex, e.g. #0b6bcb)") or "").lower()
     if colour and colour != BASE["theme"]["primary"].lower():
@@ -432,7 +436,7 @@ def read(path, org_id=None):
             continue
         v = sval(ws, rr)
         if v and v != dflt:
-            text[key.split(".")[1]] = v
+            text[key.split(".")[1]] = html.escape(str(v), quote=False)
     if text:
         cfg["text"] = text
 

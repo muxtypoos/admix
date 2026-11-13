@@ -6,7 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 
 ## [Unreleased]
 ### Added
-- Request form for organisations: an Excel workbook (`Admix-request-form.xlsx`) and a GitHub issue form, pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
+- Request form for organisations: one-page Excel workbook (`Admix-request-form.xlsx`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
+- Hands-off requests: submitting the Excel form as a GitHub issue builds the organisation, runs the tests and opens a pull request for review (`.github/workflows/organisation-request.yml`, `scripts/handle_request.py`).
+- Optional short name or abbreviation (e.g. NCIC) on the form; used for the organisation id and the app title.
 - `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
 ### Changed
 - README rewritten for users; developer notes moved to `docs/MAINTAINING.md`.
