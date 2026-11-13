@@ -4,6 +4,12 @@ All notable changes to the core app and to each organisation's config. The versi
 Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer](https://semver.org)
 (major = dosing logic or limits change, minor = new feature, patch = fix or wording). Versions below 1.0.0 are pre-release: not yet signed off for clinical use.
 
+## [Unreleased]
+### Added
+- Request form for organisations (GitHub issue form and an emailable `REQUEST-TEMPLATE.md`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
+### Changed
+- README rewritten for users; developer notes moved to `docs/MAINTAINING.md`.
+
 ## [0.3.0-beta] - 2026-11-13
 ### Added
 - Core app split from a single HTML file into `src/` (core) plus one `config.json` per organisation (`orgs/`).

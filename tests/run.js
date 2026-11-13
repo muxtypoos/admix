@@ -171,6 +171,12 @@ function builderTests() {
   rejects("out-of-range default", { defaults: { lidoMax: 99999 } }, /defaults\.lidoMax/);
   rejects("zero concentration", { addAgents: [{ id: "z1", name: "z", mgPerMl: 0, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   ok("builder accepts a valid minimal org", tryCfg({}) === null);
+  // the request form must match the base config (run `npm run template` if this fails)
+  const { render } = require("../scripts/make-request-template.js");
+  const gen = render();
+  const cur = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+  ok("request form (GitHub) is up to date", cur(".github/ISSUE_TEMPLATE/request-a-version.yml") === gen.yml);
+  ok("request form (email) is up to date", cur("REQUEST-TEMPLATE.md") === gen.md);
 }
 
 (async () => {

@@ -5,6 +5,7 @@
   "description": "Admix - Local Anaesthetic Calculator: one core app, one config per organisation",
   "scripts": {
     "pages": "node scripts/build.js --pages default",
+    "template": "node scripts/make-request-template.js",
     "check": "node scripts/build.js --check",
     "build": "node scripts/build.js --all",
     "build:org": "node scripts/build.js --org",
