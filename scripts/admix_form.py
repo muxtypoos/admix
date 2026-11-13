@@ -81,153 +81,150 @@ SIGNOFF = "My organisation's clinical lead will check and sign off these doses a
 THIN = Side(style="thin", color="B0B7BF")
 BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 INPUT = PatternFill("solid", fgColor="FFF8DC")
+SHEET = "Request form"
+SECTIONS = ["1. Your organisation", "2. Local anaesthetics and maximum doses",
+            "3. Calculation and lipid (LAST) settings", "4. Wording shown in the app", "5. Anything else?"]
 
 
 def make(out):
     wb = Workbook()
-    acc = BASE["theme"]["primary"].lstrip("#").upper()
-    head = PatternFill("solid", fgColor=acc)
-    hfont = Font(bold=True, color="FFFFFF")
-    wrap = Alignment(wrap_text=True, vertical="top")
-
-    def title(ws, text, sub=None):
-        ws["A1"] = text
-        ws["A1"].font = Font(bold=True, size=14)
-        if sub:
-            ws["A2"] = sub
-            ws["A2"].alignment = Alignment(wrap_text=True, vertical="top")
-            ws["A2"].font = Font(italic=True, color="555555")
-
-    # --- Read me
     ws = wb.active
-    ws.title = "Read me"
-    title(ws, "Admix: request a version for your organisation")
-    lines = [
-        "Yellow cells are for you. They are already filled in with the current defaults, so only change what you need.",
-        "1. Organisation: who you are and who to contact.",
-        "2. Anaesthetics: change maximum doses, switch drugs on or off (Yes/No), delete rows you do not want, add new drugs in the empty rows.",
-        "3. Settings: calculation and lipid (LAST) settings.",
-        "4. Wording: the sentences shown in the app.",
-        "5. Other requests: anything else, in your own words.",
-        "Then save the file and email it to Dr George Lui (george.lui@nhs.net), or attach it to a GitHub request.",
-        "",
-        "Admix is decision support only. Your organisation must check and sign off its own doses and guidelines before use with patients.",
-    ]
-    for i, l in enumerate(lines, start=3):
-        ws.cell(row=i, column=1, value=l).alignment = Alignment(wrap_text=True, vertical="top")
-    ws.column_dimensions["A"].width = 110
+    ws.title = SHEET
+    acc = BASE["theme"]["primary"].lstrip("#").upper()
+    bar = PatternFill("solid", fgColor=acc)
+    barfont = Font(bold=True, color="FFFFFF", size=12)
+    sub = PatternFill("solid", fgColor="DDE6F0")
+    wrapt = Alignment(wrap_text=True, vertical="top")
+    for col, w in zip("ABCDE", [58, 16, 16, 14, 44]):
+        ws.column_dimensions[col].width = w
+    r = 1
+    ws.cell(row=r, column=1, value="Admix: request a version for your organisation").font = Font(bold=True, size=15)
+    r += 1
+    intro = ("Yellow cells are for you. They are already filled in with the current defaults, so only change what you need. "
+             "Save the file and email it to Dr George Lui (george.lui@nhs.net). Admix is decision support only: your organisation "
+             "must check and sign off its own doses and guidelines before use with patients.")
+    ws.cell(row=r, column=1, value=intro).alignment = wrapt
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+    ws.row_dimensions[r].height = 48
+    r += 2
 
-    # --- Organisation
-    ws = wb.create_sheet("1 Organisation")
-    title(ws, "1. Your organisation")
-    ws.append([])
+    def section(title_, note=None):
+        nonlocal r
+        for c in range(1, 6):
+            ws.cell(row=r, column=c).fill = bar
+        ws.cell(row=r, column=1, value=title_).font = barfont
+        r += 1
+        if note:
+            ws.cell(row=r, column=1, value=note).alignment = wrapt
+            ws.cell(row=r, column=1).font = Font(italic=True, color="555555")
+            ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+            ws.row_dimensions[r].height = 32
+            r += 1
+
+    def wide_input(row, value, height=None):
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=5)
+        c = ws.cell(row=row, column=2, value=value)
+        c.fill, c.alignment = INPUT, wrapt
+        for cc in range(2, 6):
+            ws.cell(row=row, column=cc).border = BOX
+            ws.cell(row=row, column=cc).fill = INPUT
+        if height:
+            ws.row_dimensions[row].height = height
+
+    def dropdown(cells, options, allow_blank=False):
+        dv = DataValidation(type="list", formula1='"' + ",".join(options) + '"', allow_blank=allow_blank)
+        ws.add_data_validation(dv)
+        dv.add(cells)
+
+    # 1 organisation
+    section(SECTIONS[0])
     vals = ["", "", "", BASE["org"]["title"], BASE["theme"]["primary"], "No"]
-    for i, (lab, v) in enumerate(zip(ORG_LABELS, vals), start=3):
-        ws.cell(row=i, column=1, value=lab).font = Font(bold=True)
-        c = ws.cell(row=i, column=2, value=v)
-        c.fill, c.border = INPUT, BOX
-    ws["C8"] = SIGNOFF
-    ws["C8"].alignment = Alignment(wrap_text=True, vertical="top")
-    ws.row_dimensions[8].height = 45
-    dv = DataValidation(type="list", formula1='"Yes,No"', allow_blank=False)
-    dv.error, dv.errorTitle = "Choose Yes or No", "Clinical sign-off"
-    ws.add_data_validation(dv)
-    dv.add("B8")
-    ws["A10"] = "Clinical sign-off: choose Yes to confirm the statement next to it."
-    ws["A10"].font = Font(italic=True, color="555555")
-    ws.column_dimensions["A"].width = 38
-    ws.column_dimensions["B"].width = 44
-    ws.column_dimensions["C"].width = 60
+    for lab, v in zip(ORG_LABELS, vals):
+        ws.cell(row=r, column=1, value=lab).font = Font(bold=True)
+        wide_input(r, v)
+        if lab == "Clinical sign-off":
+            ws.cell(row=r + 1, column=1, value="Choose Yes to confirm: " + SIGNOFF).alignment = wrapt
+            ws.cell(row=r + 1, column=1).font = Font(italic=True, color="555555")
+            ws.merge_cells(start_row=r + 1, start_column=1, end_row=r + 1, end_column=5)
+            ws.row_dimensions[r + 1].height = 32
+            dropdown(f"B{r}", ["Yes", "No"])
+            r += 1
+        r += 1
+    r += 1
 
-    # --- Anaesthetics
-    ws = wb.create_sheet("2 Anaesthetics")
-    title(ws, "2. Local anaesthetics and maximum doses")
-    ws["A2"] = ("Edit values, delete the contents of rows you do not want, or add new drugs in the empty rows at the bottom. "
-                "mg per ml: 1% = 10, 0.5% = 5. Prilocaine and chloroprocaine start switched off.")
-    ws["A2"].alignment = Alignment(wrap_text=True, vertical="top")
-    ws.merge_cells("A2:E2")
-    ws.row_dimensions[2].height = 45
-    for j, h in enumerate(["Name", "mg per ml", "Maximum mg/kg", "In use?", "Notes (optional)"], start=1):
-        c = ws.cell(row=4, column=j, value=h)
-        c.fill, c.font, c.border = head, hfont, BOX
+    # 2 anaesthetics
+    section(SECTIONS[1], "Edit values, clear the row of any drug you do not want, or add new drugs in the empty rows at the bottom. "
+                         "mg per ml: 1% = 10, 0.5% = 5. Prilocaine and chloroprocaine start switched off.")
+    for j_, h in enumerate(["Name", "mg per ml", "Maximum mg/kg", "In use?", "Notes (optional)"], start=1):
+        c = ws.cell(row=r, column=j_, value=h)
+        c.fill, c.font, c.border = sub, Font(bold=True), BOX
+    r += 1
+    first = r
     agents = BASE["agents"]
-    for i, a in enumerate(agents, start=5):
-        for j, v in enumerate([a["name"], a["mgPerMl"], a["maxMgPerKg"], yn(a["enabled"]), ""], start=1):
-            c = ws.cell(row=i, column=j, value=v)
+    for a in agents:
+        for j_, v in enumerate([a["name"], a["mgPerMl"], a["maxMgPerKg"], yn(a["enabled"]), ""], start=1):
+            c = ws.cell(row=r, column=j_, value=v)
             c.fill, c.border = INPUT, BOX
-    last_row = 4 + len(agents) + EXTRA_ROWS
-    for i in range(5 + len(agents), last_row + 1):
-        for j in range(1, 6):
-            c = ws.cell(row=i, column=j)
+        r += 1
+    for _ in range(EXTRA_ROWS):
+        for j_ in range(1, 6):
+            c = ws.cell(row=r, column=j_)
             c.fill, c.border = INPUT, BOX
-    dv = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
-    ws.add_data_validation(dv)
-    dv.add(f"D5:D{last_row}")
+        r += 1
+    last = r - 1
+    dropdown(f"D{first}:D{last}", ["Yes", "No"], allow_blank=True)
     dn = DataValidation(type="decimal", operator="greaterThan", formula1="0", allow_blank=True)
     dn.error = "Enter a number above 0"
     ws.add_data_validation(dn)
-    dn.add(f"B5:B{last_row}")
+    dn.add(f"B{first}:B{last}")
     dm = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1="0", allow_blank=True)
     dm.error = "Enter a number, 0 or more"
     ws.add_data_validation(dm)
-    dm.add(f"C5:C{last_row}")
-    for col, w in zip("ABCDE", [44, 12, 16, 10, 40]):
-        ws.column_dimensions[col].width = w
-    ws.freeze_panes = "A5"
+    dm.add(f"C{first}:C{last}")
+    r += 1
 
-    # --- Settings
-    ws = wb.create_sheet("3 Settings")
-    title(ws, "3. Calculation and lipid (LAST) settings")
-    ws["A2"] = "Change any value in the yellow column. Leave a value as it is to keep the default."
-    for j, h in enumerate(["Setting", "Your value", "Default", "Choices"], start=1):
-        c = ws.cell(row=4, column=j, value=h)
-        c.fill, c.font, c.border = head, hfont, BOX
-    for i, (lab, _key, kind, opts, dflt) in enumerate(settings_rows(), start=5):
-        ws.cell(row=i, column=1, value=lab).border = BOX
-        c = ws.cell(row=i, column=2, value=dflt)
+    # 3 settings
+    section(SECTIONS[2], "Change any value in the yellow column. Leave a value as it is to keep the default.")
+    for j_, h in enumerate(["Setting", "Your value", "Default", "Choices"], start=1):
+        c = ws.cell(row=r, column=j_, value=h)
+        c.fill, c.font, c.border = sub, Font(bold=True), BOX
+    r += 1
+    for lab, _key, kind, opts, dflt in settings_rows():
+        ws.cell(row=r, column=1, value=lab).border = BOX
+        c = ws.cell(row=r, column=2, value=dflt)
         c.fill, c.border = INPUT, BOX
-        ws.cell(row=i, column=3, value=dflt).border = BOX
-        choices = None
-        if kind == "map":
-            choices = list(opts.values())
-        elif kind == "show":
-            choices = list(opts)
-        elif kind == "yn":
-            choices = ["Yes", "No"]
-        ws.cell(row=i, column=4, value=", ".join(choices) if choices else "a number").border = BOX
+        ws.cell(row=r, column=3, value=dflt).border = BOX
+        choices = list(opts.values()) if kind == "map" else list(opts) if kind == "show" else ["Yes", "No"] if kind == "yn" else None
+        ws.merge_cells(start_row=r, start_column=4, end_row=r, end_column=5)
+        ws.cell(row=r, column=4, value=", ".join(choices) if choices else "a number").border = BOX
         if choices:
-            dv = DataValidation(type="list", formula1='"' + ",".join(choices) + '"', allow_blank=False)
-            ws.add_data_validation(dv)
-            dv.add(f"B{i}")
-    for col, w in zip("ABCD", [60, 18, 18, 48]):
-        ws.column_dimensions[col].width = w
+            dropdown(f"B{r}", choices)
+        r += 1
+    r += 1
 
-    # --- Wording
-    ws = wb.create_sheet("4 Wording")
-    title(ws, "4. Wording shown in the app")
-    ws["A2"] = "Edit the sentences to match your local policy."
-    for j, h in enumerate(["Where it appears", "Your wording"], start=1):
-        c = ws.cell(row=4, column=j, value=h)
-        c.fill, c.font, c.border = head, hfont, BOX
-    for i, (lab, _key, txt) in enumerate(wording_rows(), start=5):
-        a = ws.cell(row=i, column=1, value=lab)
-        a.alignment, a.border = wrap, BOX
-        c = ws.cell(row=i, column=2, value=txt)
-        c.fill, c.border, c.alignment = INPUT, BOX, wrap
-        ws.row_dimensions[i].height = 62
-    ws.column_dimensions["A"].width = 36
-    ws.column_dimensions["B"].width = 100
+    # 4 wording
+    section(SECTIONS[3], "Edit the sentences to match your local policy.")
+    for lab, _key, txt in wording_rows():
+        a = ws.cell(row=r, column=1, value=lab)
+        a.alignment, a.border = wrapt, BOX
+        wide_input(r, txt, 62)
+        r += 1
+    r += 1
 
-    # --- Other requests
-    ws = wb.create_sheet("5 Other requests")
-    title(ws, "5. Anything else?")
-    ws["A2"] = "Write any other request here: extra features, another guideline, different layout, questions. Free text."
-    ws.merge_cells("A4:H30")
-    ws["A4"].fill, ws["A4"].border = INPUT, BOX
-    ws["A4"].alignment = Alignment(wrap_text=True, vertical="top")
-    for col in "ABCDEFGH":
-        ws.column_dimensions[col].width = 16
+    # 5 other
+    section(SECTIONS[4], "Write any other request here: extra features, another guideline, different layout, questions. Free text.")
+    ws.merge_cells(start_row=r, start_column=1, end_row=r + 11, end_column=5)
+    c = ws.cell(row=r, column=1)
+    c.fill, c.alignment = INPUT, wrapt
+    for rr in range(r, r + 12):
+        for cc in range(1, 6):
+            ws.cell(row=rr, column=cc).border = BOX
+            ws.cell(row=rr, column=cc).fill = INPUT
 
+    ws.page_setup.orientation = "portrait"
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
     wb.save(out)
 
 
@@ -257,10 +254,20 @@ def sval(ws, r, c=2):
     return v.strip() if isinstance(v, str) else v
 
 
-def find_rows(ws, labels, first=3):
-    """label -> row number, matching column A text."""
+def section_rows(ws):
+    """section title -> row number."""
     out = {}
-    for r in range(first, ws.max_row + 1):
+    for r in range(1, ws.max_row + 1):
+        v = ws.cell(row=r, column=1).value
+        if isinstance(v, str) and v.strip() in SECTIONS:
+            out[v.strip()] = r
+    return out
+
+
+def find_rows(ws, labels, first=1, last=None):
+    """label -> row number, matching column A text, between two rows."""
+    out = {}
+    for r in range(first, (last or ws.max_row + 1)):
         v = ws.cell(row=r, column=1).value
         if isinstance(v, str) and v.strip() in labels:
             out[v.strip()] = r
@@ -279,15 +286,18 @@ def num(v, what, errs):
 def read(path, org_id=None):
     errs = []
     wb = load_workbook(path, data_only=True)
-    need = ["1 Organisation", "2 Anaesthetics", "3 Settings", "4 Wording", "5 Other requests"]
-    for n in need:
-        if n not in wb.sheetnames:
-            raise SystemExit(f"sheet '{n}' is missing: use the original form")
+    if SHEET not in wb.sheetnames:
+        raise SystemExit(f"sheet '{SHEET}' is missing: use the original form")
+    W = wb[SHEET]
+    srow = section_rows(W)
+    for t in SECTIONS:
+        if t not in srow:
+            raise SystemExit(f"section '{t}' is missing: use the original form")
     cfg = {}
 
     # organisation
-    ws = wb["1 Organisation"]
-    rows = find_rows(ws, ORG_LABELS)
+    ws = W
+    rows = find_rows(ws, ORG_LABELS, srow[SECTIONS[0]], srow[SECTIONS[1]])
     g = lambda lab: sval(ws, rows[lab]) if lab in rows else None
     name = g("Organisation name")
     if not name:
@@ -310,12 +320,15 @@ def read(path, org_id=None):
         errs.append("Clinical sign-off is not 'Yes' (the organisation must confirm its clinical lead will sign off)")
 
     # anaesthetics
-    ws = wb["2 Anaesthetics"]
+    ws = W
     base_by_name = {a["name"].strip().lower(): a for a in BASE["agents"]}
     seen, overrides, add = set(), {}, []
     used_ids = {a["id"] for a in BASE["agents"]}
-    r = 5
-    while r <= ws.max_row:
+    r = srow[SECTIONS[1]] + 1
+    while r < srow[SECTIONS[2]] and sval(ws, r, 1) != "Name":
+        r += 1
+    r += 1
+    while r < srow[SECTIONS[2]]:
         nm = sval(ws, r, 1)
         if nm:
             mg, mk, use = sval(ws, r, 2), sval(ws, r, 3), (sval(ws, r, 4) or "").lower()
@@ -361,9 +374,9 @@ def read(path, org_id=None):
         cfg["addAgents"] = add
 
     # settings
-    ws = wb["3 Settings"]
+    ws = W
     spec = {lab: (key, kind, opts, dflt) for lab, key, kind, opts, dflt in settings_rows()}
-    rows = find_rows(ws, spec)
+    rows = find_rows(ws, spec, srow[SECTIONS[2]], srow[SECTIONS[3]])
     defaults, last = {}, {}
     for lab, (key, kind, opts, dflt) in spec.items():
         if lab not in rows:
@@ -410,10 +423,10 @@ def read(path, org_id=None):
         cfg["last"] = last
 
     # wording
-    ws = wb["4 Wording"]
+    ws = W
     text = {}
     for lab, key, dflt in wording_rows():
-        rr = find_rows(ws, [lab]).get(lab)
+        rr = find_rows(ws, [lab], srow[SECTIONS[3]], srow[SECTIONS[4]]).get(lab)
         if rr is None:
             errs.append(f"Wording: row '{lab}' is missing")
             continue
@@ -423,7 +436,8 @@ def read(path, org_id=None):
     if text:
         cfg["text"] = text
 
-    notes = ws_notes = wb["5 Other requests"]["A4"].value
+    nr = srow[SECTIONS[4]] + 2
+    notes = W.cell(row=nr, column=1).value
     if errs:
         print("Problems in the form:", file=sys.stderr)
         for e in errs:

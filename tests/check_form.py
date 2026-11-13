@@ -29,6 +29,19 @@ def values(path):
     return {ws.title: [[c.value for c in row] for row in ws.iter_rows()] for ws in wb}
 
 
+def row_of(ws, label, after=1):
+    """First row at or after `after` whose column A is `label`."""
+    for r in range(after, ws.max_row + 1):
+        v = ws.cell(row=r, column=1).value
+        if isinstance(v, str) and v.strip() == label:
+            return r
+    raise KeyError(label)
+
+
+def sec(ws, i):
+    return row_of(ws, F.SECTIONS[i])
+
+
 tmp = Path(tempfile.mkdtemp())
 try:
     # 1. committed form is up to date with src/config.base.json
@@ -37,14 +50,15 @@ try:
 
     # 2. an untouched form (name + sign-off only) gives no overrides
     wb = load_workbook(F.DEFAULT_FORM)
-    wb["1 Organisation"]["B3"] = "Test Trust"
-    wb["1 Organisation"]["B8"] = "Yes"
+    ws = wb[F.SHEET]
+    ws.cell(row=row_of(ws, "Organisation name"), column=2).value = "Test Trust"
+    ws.cell(row=row_of(ws, "Clinical sign-off"), column=2).value = "Yes"
     wb.save(tmp / "f1.xlsx")
     org_id, cfg, _ = F.read(tmp / "f1.xlsx")
     ok("untouched form -> only organisation block", list(cfg) == ["org"] and org_id == "test-trust", cfg)
 
     # 3. a missing sign-off is refused
-    wb["1 Organisation"]["B8"] = "No"
+    ws.cell(row=row_of(ws, "Clinical sign-off"), column=2).value = "No"
     wb.save(tmp / "f_nosign.xlsx")
     try:
         F.read(tmp / "f_nosign.xlsx")
@@ -54,26 +68,26 @@ try:
 
     # 4. a changed form becomes the expected config, and the build accepts it
     wb = load_workbook(F.DEFAULT_FORM)
-    o = wb["1 Organisation"]
-    o["B3"], o["B4"], o["B5"], o["B7"], o["B8"] = "Form Test Trust", "Dr T", "t@example.invalid", "#0a7d5a", "Yes"
-    a = wb["2 Anaesthetics"]
-    rows = {a.cell(r, 1).value: r for r in range(5, 40) if a.cell(r, 1).value}
-    a.cell(rows["1% Lidocaine (Plain)"], 3).value = 2.5
-    a.cell(rows["1% Prilocaine"], 4).value = "Yes"
-    for c in range(1, 5):
-        a.cell(rows["0.75% Ropivacaine"], c).value = None
-    free = max(rows.values()) + 1
+    ws = wb[F.SHEET]
+    setv = lambda label, v, col=2, after=1: ws.cell(row=row_of(ws, label, after), column=col).__setattr__("value", v)
+    setv("Organisation name", "Form Test Trust")
+    setv("Contact name", "Dr T")
+    setv("Contact email", "t@example.invalid")
+    setv("Accent colour (hex, e.g. #0b6bcb)", "#0a7d5a")
+    setv("Clinical sign-off", "Yes")
+    s2, s3, s4, s5 = sec(ws, 1), sec(ws, 2), sec(ws, 3), sec(ws, 4)
+    ws.cell(row=row_of(ws, "1% Lidocaine (Plain)", s2), column=3).value = 2.5
+    ws.cell(row=row_of(ws, "1% Prilocaine", s2), column=4).value = "Yes"
+    rr = row_of(ws, "0.75% Ropivacaine", s2)
+    for c in range(1, 6):
+        ws.cell(row=rr, column=c).value = None
+    free = next(r for r in range(row_of(ws, "Name", s2) + 1, s3) if not ws.cell(row=r, column=1).value)
     for c, v in enumerate(["0.5% Mepivacaine", 5, 4, "Yes"], start=1):
-        a.cell(free, c).value = v
-    s = wb["3 Settings"]
-    for r in range(5, 25):
-        lab = s.cell(r, 1).value
-        if lab == "Airway lidocaine absolute maximum (mg)":
-            s.cell(r, 2).value = 600
-        if lab == "Lipid (LAST) guidelines to show":
-            s.cell(r, 2).value = "ASRA only"
-    wb["4 Wording"]["B5"] = "Local policy: see guideline 12."
-    wb["5 Other requests"]["A4"] = "Please add a block table."
+        ws.cell(row=free, column=c).value = v
+    setv("Airway lidocaine absolute maximum (mg)", 600, after=s3)
+    setv("Lipid (LAST) guidelines to show", "ASRA only", after=s3)
+    setv("Footer", "Local policy: see guideline 12.", after=s4)
+    ws.cell(row=s5 + 2, column=1).value = "Please add a block table."
     wb.save(tmp / "f2.xlsx")
     org_id, cfg, notes = F.read(tmp / "f2.xlsx")
     ok("org id from name", org_id == "form-test-trust", org_id)
