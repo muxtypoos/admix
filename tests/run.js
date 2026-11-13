@@ -175,8 +175,7 @@ function builderTests() {
   const { render } = require("../scripts/make-request-template.js");
   const gen = render();
   const cur = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
-  ok("request form (GitHub) is up to date", cur(".github/ISSUE_TEMPLATE/request-a-version.yml") === gen.yml);
-  ok("request form (email) is up to date", cur("REQUEST-TEMPLATE.md") === gen.md);
+  ok("GitHub request form is up to date (run `npm run template`)", cur(".github/ISSUE_TEMPLATE/request-a-version.yml") === gen.yml);
 }
 
 (async () => {

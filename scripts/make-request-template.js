@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /*
- * Writes the "request a version for your organisation" templates from src/config.base.json,
+ * Writes the GitHub issue form "request a version for your organisation" from src/config.base.json (the Excel form is made by scripts/admix_form.py),
  * so the pre-filled defaults can never drift from the app:
  *   .github/ISSUE_TEMPLATE/request-a-version.yml   (GitHub form)
- *   REQUEST-TEMPLATE.md                            (copy-and-email version)
  * Usage: node scripts/make-request-template.js          write files
  *        require("./make-request-template").render()    returns { yml, md } without writing (used by tests)
  */
@@ -95,7 +94,6 @@ if (require.main === module) {
   const { yml, md } = render();
   fs.mkdirSync(path.join(ROOT, ".github", "ISSUE_TEMPLATE"), { recursive: true });
   fs.writeFileSync(path.join(ROOT, ".github", "ISSUE_TEMPLATE", "request-a-version.yml"), yml);
-  fs.writeFileSync(path.join(ROOT, "REQUEST-TEMPLATE.md"), md);
-  console.log("wrote .github/ISSUE_TEMPLATE/request-a-version.yml and REQUEST-TEMPLATE.md");
+  console.log("wrote .github/ISSUE_TEMPLATE/request-a-version.yml");
 }
 module.exports = { render };

@@ -27,7 +27,8 @@ npm install                       # once (also: npx playwright install chromium)
 npm run check                     # validate every org's config, write nothing
 npm run build                     # build every organisation into dist/
 npm run build:org -- my-trust     # build one
-npm run template                  # regenerate the request form (after changing src/config.base.json)
+npm run template                  # regenerate both request forms (after changing src/config.base.json)
+python3 scripts/admix_form.py read filled.xlsx   # turn a returned Excel form into orgs/<id>/config.json (then review, build, test)
 npm run pages                     # rebuild the committed ./index.html (do this before every commit that changes src/ or orgs/default/)
 npm test                          # build everything, then run all checks
 node scripts/new-org.js my-trust "My Trust"   # start a new organisation

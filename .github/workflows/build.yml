@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: npm install
+      - run: pip install openpyxl
       - run: npx playwright install --with-deps chromium
       - name: Validate configs, build every organisation, run tests
         run: npm test

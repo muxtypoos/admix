@@ -6,7 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 
 ## [Unreleased]
 ### Added
-- Request form for organisations (GitHub issue form and an emailable `REQUEST-TEMPLATE.md`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
+- Request form for organisations: an Excel workbook (`Admix-request-form.xlsx`) and a GitHub issue form, pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
+- `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
 ### Changed
 - README rewritten for users; developer notes moved to `docs/MAINTAINING.md`.
 
