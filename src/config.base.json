@@ -1,13 +1,15 @@
 {
  "_comment": "Core defaults. Every organisation inherits this and overrides only what it needs in orgs/<id>/config.json (objects merge; arrays such as `agents` are replaced).",
  "storagePrefix": "la",
+ "publicUrl": "https://muxtypoos.github.io/admix/",
  "org": {
   "id": "base",
   "name": "Admix",
   "title": "Admix - Local Anaesthetic Calculator",
   "contactName": "",
   "contactEmail": "",
-  "shortName": ""
+  "shortName": "",
+  "publish": true
  },
  "theme": {
   "primary": "#0b6bcb",

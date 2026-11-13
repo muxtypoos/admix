@@ -171,6 +171,19 @@ function builderTests() {
   rejects("out-of-range default", { defaults: { lidoMax: 99999 } }, /defaults\.lidoMax/);
   rejects("zero concentration", { addAgents: [{ id: "z1", name: "z", mgPerMl: 0, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   ok("builder accepts a valid minimal org", tryCfg({}) === null);
+  // reserved folder names are refused
+  const rd = path.join(ROOT, "orgs", "src");
+  fs.mkdirSync(rd, { recursive: true });
+  fs.writeFileSync(path.join(rd, "config.json"), JSON.stringify({ org: { id: "src", name: "S" } }));
+  let rerr = null;
+  try { execFileSync("node", [path.join(ROOT, "scripts", "build.js"), "--check"], { stdio: "pipe" }); } catch (e) { rerr = String(e.stderr); }
+  fs.rmSync(rd, { recursive: true, force: true });
+  ok("builder rejects a reserved org id", rerr && /reserved/.test(rerr), rerr);
+  // pages: default at the root, publishable orgs in their own folder, publish:false skipped
+  execFileSync("node", [path.join(ROOT, "scripts", "build.js"), "--pages"], { stdio: "pipe" });
+  ok("pages: default at ./index.html", fs.existsSync(path.join(ROOT, "index.html")));
+  ok("pages: org with publish:false has no public folder", !fs.existsSync(path.join(ROOT, "example-hospital", "index.html")));
+  ok("app title is fixed for requests", JSON.parse(fs.readFileSync(path.join(ROOT, "orgs", "example-hospital", "config.json"), "utf8")).org.title.startsWith("Admix - Local Anaesthetic Calculator"));
 }
 
 (async () => {

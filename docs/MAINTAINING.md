@@ -12,7 +12,6 @@ src/template.html            the core app (all logic and layout)
 src/config.base.json         complete defaults every organisation inherits
 src/assets, src/data         guideline images, RCPCH BMI charts and centile data
 orgs/<id>/config.json        what ONE organisation changes (only the differences)
-orgs/<id>/SIGNOFF.md         who reviewed that organisation's limits, and when
 scripts/build.js             merge + validate + build
 tests/run.js                 regression tests (core, and every organisation's config)
 dist/<id>/index.html         build output (not committed)
@@ -41,7 +40,7 @@ Only list what differs from `src/config.base.json`. Objects merge; lists are rep
 
 | Key | Meaning |
 |---|---|
-| `org` | `id` (= folder name), `name`, `title` (browser/app title), `contactName`, `contactEmail` (disclaimer line) |
+| `org` | `id` (= folder name), `name`, `title` (browser/app title; requests get `Admix - Local Anaesthetic Calculator - <short name>`), `shortName`, `contactName`, `contactEmail` (disclaimer line), `publish` (false = no public link), `signoff` (`name`, `email`, `date` from form section 6; kept out of the page, written to `build-info.json`) |
 | `theme` | `primary`, `primaryDark` (#rrggbb accent colours for light/dark mode) |
 | `defaults` | Starting values of the Expert settings: `lbw`, `lbwP`, `pc`, `bmi`, `blend`, `lidoCap`, `lidoMax`, `cpMg`, `cpN`, `bolus`, `inf`, `mult`, `cap`, `neoRed` |
 | `agentOverrides` | Tweak individual agents by id, e.g. `{"b25": {"maxMgPerKg": 2.5, "enabled": false}}` |
@@ -94,7 +93,7 @@ Give an organisation a different `storagePrefix` if two organisations' apps coul
 
 ### Changing one organisation
 Branch `config/<org>-<what>`, edit only `orgs/<org>/`, run `npm test`, open a PR (CI rejects an invalid config),
-get the organisation's reviewer to approve, record the review in `orgs/<org>/SIGNOFF.md`, merge, tag.
+get the organisation's reviewer to approve, merge, tag. The organisation's own sign-off is the name and email in `org.signoff`.
 Commit messages `config(<org>): ...` make `git log --grep "config(<org>)"` the full audit trail of that organisation's limits.
 
 ### Tracking every change
@@ -123,7 +122,7 @@ the groundwork; check early with your clinical safety / digital governance lead.
 template is opened or edited. It downloads the attached `.xlsx`, converts it with `scripts/handle_request.py`, builds and tests
 every organisation, then opens a pull request on branch `request/<org>-<issue number>` and comments on the issue.
 If the form has problems it comments with what to fix instead. Nothing is merged automatically: a reviewer checks the doses,
-records sign-off in `orgs/<org>/SIGNOFF.md`, handles the free-text requests in `REQUEST-NOTES.md`, then merges.
+checks the sign-off recorded from the form (section 6, in `org.signoff`), handles the free-text requests in `REQUEST-NOTES.md`, then merges.
 
 One-off setting needed: **Settings, Actions, General, Workflow permissions**: choose "Read and write permissions" and tick
 "Allow GitHub Actions to create and approve pull requests". Pull requests opened by the workflow do not trigger the normal

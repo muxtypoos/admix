@@ -10,6 +10,7 @@ The organisation request form (Excel).
 
 Needs openpyxl (pip install openpyxl).
 """
+import datetime
 import html
 import json
 import re
@@ -74,8 +75,14 @@ def wording_rows():
     ]
 
 
-ORG_LABELS = ["Organisation name", "Short name or abbreviation (e.g. NCIC)", "Contact name", "Contact email", "App name (shown in the title bar)",
-              "Accent colour (hex, e.g. #0b6bcb)", "Clinical sign-off"]
+SHORT_LABEL = "Short name or abbreviation (e.g. NCIC)"
+ORG_LABELS = ["Organisation name", SHORT_LABEL, "Contact name", "Contact email"]
+SO_LABEL = "Clinical sign-off"
+SO_PERSON = "Person responsible for confirming clinical sign-off"
+SO_NAME = "Their name"
+SO_EMAIL = "Their email"
+SO_LABELS = [SO_LABEL, SO_NAME, SO_EMAIL]
+APP_TITLE = "Admix - Local Anaesthetic Calculator"
 SIGNOFF = "My organisation's clinical lead will check and sign off these doses and wording before the app is used with patients."
 
 # ---------------------------------------------------------------- make
@@ -84,7 +91,8 @@ BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 INPUT = PatternFill("solid", fgColor="FFF8DC")
 SHEET = "Request form"
 SECTIONS = ["1. Your organisation", "2. Local anaesthetics and maximum doses",
-            "3. Calculation and lipid (LAST) settings", "4. Wording shown in the app", "5. Anything else?"]
+            "3. Calculation and lipid (LAST) settings", "4. Wording shown in the app", "5. Anything else?",
+            "6. Clinical sign-off"]
 
 
 def make(out):
@@ -139,18 +147,20 @@ def make(out):
 
     # 1 organisation
     section(SECTIONS[0])
-    vals = ["", "", "", "", BASE["org"]["title"], BASE["theme"]["primary"], "No"]
-    for lab, v in zip(ORG_LABELS, vals):
+    pub = BASE["publicUrl"]
+    for lab in ORG_LABELS:
         ws.cell(row=r, column=1, value=lab).font = Font(bold=True)
-        wide_input(r, v)
-        if lab == "Clinical sign-off":
-            ws.cell(row=r + 1, column=1, value="Choose Yes to confirm: " + SIGNOFF).alignment = wrapt
-            ws.cell(row=r + 1, column=1).font = Font(italic=True, color="555555")
-            ws.merge_cells(start_row=r + 1, start_column=1, end_row=r + 1, end_column=5)
-            ws.row_dimensions[r + 1].height = 32
-            dropdown(f"B{r}", ["Yes", "No"])
-            r += 1
+        wide_input(r, "")
         r += 1
+        if lab == SHORT_LABEL:
+            ws.cell(row=r, column=1, value=(
+                "Required. Up to 12 letters or digits. This is used in the online link for your organisation "
+                f"(for example {pub}ncic/) and in the app name (for example {APP_TITLE} - NCIC). "
+                "The app name itself cannot be changed.")).alignment = wrapt
+            ws.cell(row=r, column=1).font = Font(italic=True, color="555555")
+            ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+            ws.row_dimensions[r].height = 46
+            r += 1
     r += 1
 
     # 2 anaesthetics
@@ -222,6 +232,29 @@ def make(out):
             ws.cell(row=rr, column=cc).border = BOX
             ws.cell(row=rr, column=cc).fill = INPUT
 
+    r += 12 + 1
+    # 6 sign-off
+    section(SECTIONS[5])
+    ws.cell(row=r, column=1, value=SO_LABEL).font = Font(bold=True)
+    wide_input(r, "No")
+    dropdown(f"B{r}", ["Yes", "No"])
+    r += 1
+    ws.cell(row=r, column=1, value="Choose Yes to confirm: " + SIGNOFF).alignment = wrapt
+    ws.cell(row=r, column=1).font = Font(italic=True, color="555555")
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+    ws.row_dimensions[r].height = 32
+    r += 1
+    ws.cell(row=r, column=1, value=SO_PERSON).font = Font(bold=True)
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+    r += 1
+    for lab in (SO_NAME, SO_EMAIL):
+        ws.cell(row=r, column=1, value=lab).font = Font(bold=True)
+        wide_input(r, "")
+        r += 1
+    ws.cell(row=r, column=1, value="Typing your name and email here counts as the organisation's sign-off. "
+            "It is recorded with your version.").font = Font(italic=True, color="555555")
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+
     ws.page_setup.orientation = "portrait"
     ws.page_setup.fitToWidth = 1
     ws.page_setup.fitToHeight = 0
@@ -242,12 +275,6 @@ def infer_group(name):
         if re.search(pat, n):
             return g
     return "x" + (slug(re.sub(r"^[\d.]+%?\s*", "", n)).split("-")[0] or "new")[:8]
-
-
-def lighten(hex6, f=0.35):
-    r, g, b = (int(hex6[i:i + 2], 16) for i in (0, 2, 4))
-    r, g, b = (round(c + (255 - c) * f) for c in (r, g, b))
-    return "#%02x%02x%02x" % (r, g, b)
 
 
 def sval(ws, r, c=2):
@@ -303,25 +330,29 @@ def read(path, org_id=None):
     name = g("Organisation name")
     if not name:
         errs.append("Organisation name is empty")
-    short = g("Short name or abbreviation (e.g. NCIC)") or ""
-    if short and not re.fullmatch(r"[A-Za-z0-9 &.-]{1,12}", short):
-        errs.append("Short name must be 1-12 letters, digits, spaces, & . or -")
-    org_id = org_id or slug(short or name or "")
+    short = g(SHORT_LABEL) or ""
+    if not short:
+        errs.append("Short name is empty (it is used in your online link and the app name)")
+    elif not re.fullmatch(r"[A-Za-z0-9]{1,12}", short):
+        errs.append("Short name must be 1-12 letters or digits only (no spaces or symbols), because it is used in your online link")
+    org_id = org_id or slug(short or "")
     if not org_id:
         errs.append("could not make an organisation id (give --id)")
-    title_cell = g("App name (shown in the title bar)") or BASE["org"]["title"]
-    if title_cell == BASE["org"]["title"] and name:
-        title_cell = f"{short or name} - Local Anaesthetic Calculator"
-    cfg["org"] = {"id": org_id, "name": name or "", "shortName": short, "title": title_cell,
+    cfg["org"] = {"id": org_id, "name": name or "", "shortName": short,
+                  "title": f"{APP_TITLE} - {short}" if short else APP_TITLE,
                   "contactName": g("Contact name") or "", "contactEmail": g("Contact email") or ""}
-    colour = (g("Accent colour (hex, e.g. #0b6bcb)") or "").lower()
-    if colour and colour != BASE["theme"]["primary"].lower():
-        if re.fullmatch(r"#[0-9a-f]{6}", colour):
-            cfg["theme"] = {"primary": colour, "primaryDark": lighten(colour[1:])}
-        else:
-            errs.append(f"Accent colour '{colour}' must look like #0b6bcb")
-    if (g("Clinical sign-off") or "").lower() != "yes":
-        errs.append("Clinical sign-off is not 'Yes' (the organisation must confirm its clinical lead will sign off)")
+
+    # sign-off
+    so = find_rows(W, SO_LABELS, srow[SECTIONS[5]], W.max_row + 1)
+    sg = lambda lab: sval(W, so[lab]) if lab in so else None
+    so_name, so_email = (sg(SO_NAME) or ""), (sg(SO_EMAIL) or "")
+    if (sg(SO_LABEL) or "").lower() != "yes":
+        errs.append("Clinical sign-off (section 6) is not 'Yes'")
+    if not so_name:
+        errs.append("Section 6: the name of the person confirming sign-off is empty")
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", str(so_email)):
+        errs.append("Section 6: the email of the person confirming sign-off is missing or not valid")
+    cfg["org"]["signoff"] = {"name": so_name, "email": so_email, "date": datetime.date.today().isoformat()}
 
     # anaesthetics
     ws = W

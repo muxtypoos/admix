@@ -3,9 +3,10 @@
  "org": {
   "id": "example-hospital",
   "name": "Example Hospital NHS Trust",
-  "title": "Example Hospital - Local Anaesthetic Calculator",
   "contactName": "Anaesthetic Governance Lead",
-  "contactEmail": "anaesthetics@example.invalid"
+  "contactEmail": "anaesthetics@example.invalid",
+  "publish": false,
+  "title": "Admix - Local Anaesthetic Calculator - Example"
  },
  "theme": {
   "primary": "#0a7d5a",

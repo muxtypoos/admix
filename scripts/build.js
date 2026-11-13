@@ -8,7 +8,7 @@
  * Usage:  node scripts/build.js --org <id>      build one organisation
  *         node scripts/build.js --all           build every folder in orgs/
  *         node scripts/build.js --check         validate every config, write nothing
- *         node scripts/build.js --pages <id>    build one org AND copy it to ./index.html (GitHub Pages)
+ *         node scripts/build.js --pages         build all orgs and write the GitHub Pages files: ./index.html (default) and ./<id>/index.html
  * No dependencies: Node 18+ only.
  */
 "use strict";
@@ -75,11 +75,15 @@ function loadConfig(orgId) {
   return { cfg: strip(cfg), dir };
 }
 
+// folder names an organisation may not use: they would collide with repository folders or the default build
+const RESERVED_IDS = ["src", "orgs", "scripts", "tests", "docs", "dist", "node_modules", "github", "assets", "android", "base"];
+
 function validate(cfg) {
   const errs = [];
   const bad = (m) => errs.push(m);
   if (!/^[A-Za-z0-9_]+$/.test(cfg.storagePrefix || "")) bad("storagePrefix must be letters, digits or _");
   if (!/^[a-z0-9-]+$/.test(cfg.org.id)) bad("org.id must be lower-case letters, digits or -");
+  if (RESERVED_IDS.includes(cfg.org.id)) bad(`org.id "${cfg.org.id}" is reserved`);
   if (!cfg.org.name) bad("org.name is required");
   if (!cfg.org.title) bad("org.title is required");
   if (cfg.org.shortName && !/^[A-Za-z0-9 &.-]{1,12}$/.test(cfg.org.shortName)) bad("org.shortName must be 1-12 letters, digits, spaces, & . or -");
@@ -143,6 +147,9 @@ function build(orgId, outRoot) {
     : "";
   cfg.text.disclaimer = cfg.text.disclaimer.replace("{contact}", contact);
 
+  // sign-off is a record about the organisation, not part of the app: keep it out of the page and the hash
+  const signoff = cfg.org.signoff || null;
+  delete cfg.org.signoff;
   const hash = crypto.createHash("sha256").update(JSON.stringify(cfg)).digest("hex").slice(0, 8);
   const stamp = `Admix v${pkg.version} · ${cfg.org.id} · ${hash}`;
   cfg.build = { version: pkg.version, org: cfg.org.id, hash, stamp };
@@ -181,8 +188,8 @@ function build(orgId, outRoot) {
   const out = path.join(outRoot, cfg.org.id);
   fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, "index.html"), html);
-  fs.writeFileSync(path.join(out, "build-info.json"), JSON.stringify(cfg.build, null, 1) + "\n");
-  return { out, stamp, kb: Math.round(html.length / 1024) };
+  fs.writeFileSync(path.join(out, "build-info.json"), JSON.stringify({ ...cfg.build, signoff }, null, 1) + "\n");
+  return { out, stamp, kb: Math.round(html.length / 1024), publish: cfg.org.publish !== false };
 }
 
 function main() {
@@ -190,14 +197,13 @@ function main() {
   const outRoot = path.join(ROOT, "dist");
   const orgs = fs.readdirSync(path.join(ROOT, "orgs"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
   let todo;
-  if (a.includes("--all") || a.includes("--check")) todo = orgs;
+  // --pages: build every organisation and publish it for GitHub Pages:
+  //   default -> ./index.html,  every other org (unless org.publish is false) -> ./<id>/index.html
+  const pages = a.includes("--pages");
+  if (a.includes("--all") || a.includes("--check") || pages) todo = orgs;
   else if (a.includes("--org")) todo = [a[a.indexOf("--org") + 1]];
-  else if (a.includes("--pages")) todo = [a[a.indexOf("--pages") + 1]];
-  else { console.error("usage: build.js --org <id> | --all | --check"); process.exit(2); }
+  else { console.error("usage: build.js --org <id> | --all | --check | --pages"); process.exit(2); }
   let failed = 0;
-  // --pages <org>: also write that organisation's app to ./index.html (what GitHub Pages serves from the repo root)
-  const pagesOrg = a.includes("--pages") ? a[a.indexOf("--pages") + 1] : null;
-  if (pagesOrg) todo = [pagesOrg];
   for (const id of todo) {
     try {
       if (a.includes("--check")) {
@@ -208,7 +214,14 @@ function main() {
       } else {
         const r = build(id, outRoot);
         console.log(`built  ${id.padEnd(20)} ${String(r.kb).padStart(5)} KB  ${r.stamp}`);
-        if (pagesOrg) { fs.copyFileSync(path.join(r.out, "index.html"), path.join(ROOT, "index.html")); console.log("wrote  ./index.html (GitHub Pages)"); }
+        if (pages && id === "default") {
+          fs.copyFileSync(path.join(r.out, "index.html"), path.join(ROOT, "index.html"));
+          console.log("wrote  ./index.html");
+        } else if (pages && r.publish) {
+          fs.mkdirSync(path.join(ROOT, id), { recursive: true });
+          fs.copyFileSync(path.join(r.out, "index.html"), path.join(ROOT, id, "index.html"));
+          console.log(`wrote  ./${id}/index.html`);
+        }
       }
     } catch (e) {
       failed++;
@@ -218,4 +231,4 @@ function main() {
   process.exit(failed ? 1 : 0);
 }
 if (require.main === module) main();
-module.exports = { build, loadConfig, validate };
+module.exports = { build, loadConfig, validate, RESERVED_IDS };

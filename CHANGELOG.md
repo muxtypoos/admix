@@ -8,9 +8,13 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 ### Added
 - Request form for organisations: one-page Excel workbook (`Admix-request-form.xlsx`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
 - Hands-off requests: submitting the Excel form as a GitHub issue builds the organisation, runs the tests and opens a pull request for review (`.github/workflows/organisation-request.yml`, `scripts/handle_request.py`).
-- Optional short name or abbreviation (e.g. NCIC) on the form; used for the organisation id and the app title.
+- Short name or abbreviation (e.g. NCIC) on the form, now required: it becomes the organisation's online link (`<site>/ncic/`) and its app name.
+- Clinical sign-off moved to the end of the form (section 6): Yes, plus the name and email of the person confirming. This is recorded in the organisation's config and build info, so `SIGNOFF.md` files are no longer used.
+- Every published organisation is built to `<id>/index.html` for GitHub Pages (`npm run pages`); `org.publish: false` opts out.
 - `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
 ### Changed
+- App name is fixed as `Admix - Local Anaesthetic Calculator - <short name>`; it can no longer be edited on the form.
+- Accent colour removed from the form (still available to developers in `theme`).
 - README rewritten for users; developer notes moved to `docs/MAINTAINING.md`.
 
 ## [0.3.0-beta] - 2026-11-13

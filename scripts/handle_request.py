@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import admix_form as F  # noqa: E402
 
-RESERVED = {"default", "example-hospital"}
+RESERVED = {"default", "example-hospital", "src", "orgs", "scripts", "tests", "docs", "dist", "node_modules", "github", "assets", "android", "base"}
 MAX_BYTES = 2_000_000
 URL_RE = re.compile(r"https://github\.com/[^\s)\]\"'<>]+?\.xlsx", re.I)
 RESULT = Path(os.environ.get("RESULT_FILE", "/tmp/request-result.md"))
@@ -48,7 +48,11 @@ def download(url, dest):
 
 
 def summary(cfg):
-    lines = [f"**{cfg['org']['name']}** (`{cfg['org']['id']}`)"]
+    so = cfg["org"].get("signoff") or {}
+    lines = [f"**{cfg['org']['name']}** (`{cfg['org']['id']}`)",
+             f"- App name: {cfg['org']['title']}",
+             f"- Online link once merged: {F.BASE['publicUrl']}{cfg['org']['id']}/",
+             f"- Clinical sign-off confirmed by {so.get('name', '?')} <{so.get('email', '?')}> on {so.get('date', '?')} (recorded in the config)"]
     if cfg.get("removeAgents"):
         lines.append("- Removed drugs: " + ", ".join(cfg["removeAgents"]))
     for k, v in (cfg.get("agentOverrides") or {}).items():
@@ -61,8 +65,6 @@ def summary(cfg):
         lines.append(f"- Lipid guidelines: {cfg['last']}")
     for k in (cfg.get("text") or {}):
         lines.append(f"- Wording changed: `{k}`")
-    if cfg.get("theme"):
-        lines.append(f"- Accent colour {cfg['theme']['primary']}")
     if len(lines) == 1:
         lines.append("- No changes from the defaults.")
     return "\n".join(lines)
@@ -101,9 +103,6 @@ def main():
     d.mkdir(parents=True, exist_ok=True)
     (d / "config.json").write_text(json.dumps(cfg, indent=1, ensure_ascii=False) + "\n", encoding="utf8")
     (d / "REQUEST-NOTES.md").write_text(f"# Request notes: {cfg['org']['name']}\n\n{notes or '(none)'}\n", encoding="utf8")
-    (d / "SIGNOFF.md").write_text(
-        f"# {cfg['org']['name']}: clinical sign-off\n\n| Config version (tag) | Reviewed by (name, role) | Date | Notes |\n|---|---|---|---|\n|  |  |  | Requested via issue form; not yet reviewed |\n",
-        encoding="utf8")
     RESULT.write_text(summary(cfg) + ("\n\n**Free-text requests (need a person):**\n\n" + "\n".join("> " + l for l in notes.splitlines()) if notes else "") + "\n")
     print(f"org={org_id}")
     return 0

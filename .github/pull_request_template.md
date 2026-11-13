@@ -9,4 +9,4 @@
 - [ ] Doses or limits changed? Source/guideline and version: 
 - [ ] `npm test` passes (builds every organisation and runs the checks)
 - [ ] CHANGELOG.md updated
-- [ ] For a config change: reviewer named in `orgs/<id>/SIGNOFF.md`
+- [ ] For a config change: `org.signoff` (name, email, date) is filled in
