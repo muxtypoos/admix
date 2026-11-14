@@ -19,6 +19,15 @@ index.html                   the DEFAULT organisation's build, committed because
                              (https://muxtypoos.github.io/admix/). Refresh with `npm run pages`.
 ```
 
+## The calculation engine (`src/engine.js`)
+
+Every equation and rule that produces a dose is in `src/engine.js`: lean body weight, dosing weight and BMI centiles, neonatal reduction, the airway lidocaine parser and pool, single and dual agent maximums, chart points, dilution, "% over" text and lipid rescue. It contains no screen code and no global state: each function takes its inputs and returns results. `src/template.html` only reads the inputs, calls `Admix.*` and displays the answers.
+
+- **To audit:** read `src/engine.js` on its own (it is about 150 lines, each section headed by a comment). `tests/engine.js` lists fixed worked examples with answers that can be checked by hand.
+- **To change a formula:** edit `src/engine.js`, update the matching worked example in `tests/engine.js`, run `npm test`, and add a changelog line (a dosing change is a major version under SemVer).
+- **Safety net:** `tests/equivalence.js` runs random cases through the last pre-engine build (`tests/baseline/pre-engine-0.3.0-beta.html`) and the current build and requires identical output. If you change a formula on purpose it will report differences; replace the baseline with the new reference build when you accept them.
+- The build inserts the file into the page unchanged (token `@@engine@@`); it refuses an engine containing `@@`, `</script` or `<!--`.
+
 ## Everyday commands
 
 ```bash

@@ -14,6 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 - Every published organisation is built to `<id>/index.html` for GitHub Pages (`npm run pages`); `org.publish: false` opts out.
 - `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
 ### Changed
+- All equations and dosing rules now live in one separate file, `src/engine.js` (no screen code, no hidden state), so they can be audited, tested and changed on their own. The page only gathers inputs and shows results. The build inserts the engine into each page unchanged. No change to any number: a 500-case comparison against the previous build found zero differences (`tests/equivalence.js`, baseline kept in `tests/baseline/`), and `tests/engine.js` checks fixed worked examples by hand-calculated answers.
 - Airway topicalisation note now asks users to double check the amounts and calculations (replaces "Parsed by: Rules").
 - Every "over the maximum" message (airway lidocaine, chart, plan box, dual-agent, dilution) now also shows how many % over the maximum the dose is.
 - App name is fixed as `Admix - Local Anaesthetic Calculator - <short name>`; it can no longer be edited on the form.

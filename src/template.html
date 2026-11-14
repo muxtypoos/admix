@@ -175,6 +175,7 @@ html.paed:root[data-theme="dark"] header{background:linear-gradient(135deg,#7a00
 <p><b>LAST, ASRA 2020 checklist:</b> over 70 kg (strictly over): bolus ~100 ml over 2–3 min, then ~250 ml over 15–20 min (≈750–1000 ml/h). 70 kg or under: bolus ~1.5 × W ml (maximum 100 ml) over 2–3 min, infusion ~0.25 × W ml/min (= 15 × W ml/h; consider a pump below 40 kg). If still unstable: repeat the bolus and double the infusion (30 × W ml/h under 70 kg, ≈1500–2000 ml/h over 70 kg). No fixed repeat limit is stated. Continue lipid for ≥15 min once haemodynamically stable. Maximum lipid dose = 12 × W ml. Epinephrine: start ≤1 mcg/kg.</p>
 <p>@@text.defaultLimits@@</p><p class="mu" style="border-top:1px solid var(--bd);padding-top:10px">@@text.disclaimer@@</p></details></div></div>
 <script>
+@@engine@@
 var NEO=false;var D=CFG.defaults;
 var S=Object.assign({},D),OVR={},cu=[];
 try{var x=localStorage.getItem(SK+"Set");if(x)S=Object.assign(S,JSON.parse(x));OVR=JSON.parse(localStorage.getItem(SK+"Ov")||"{}");cu=JSON.parse(localStorage.getItem(SK+"Cu")||"[]");var p=localStorage.getItem(SK+"Pt");if(p){p=JSON.parse(p);["w","h","s","age"].forEach(function(k){if(p[k]!=null)document.getElementById(k).value=p[k]})}}catch(e){}
@@ -183,23 +184,16 @@ function clampv(f,n){var b=BND[f];return b?Math.min(b[1],Math.max(b[0],n)):n}
 (function(){for(var k in BND){if(typeof S[k]!=="number"||!isFinite(S[k]))S[k]=D[k];S[k]=clampv(k,S[k])}var F=["jan","boer","james","hume","peters"];if(F.indexOf(S.lbw)<0)S.lbw=D.lbw;if(F.indexOf(S.lbwP)<0)S.lbwP=D.lbwP;if(["c91","c98","c996"].indexOf(S.pc)<0)S.pc=D.pc;S.blend=S.blend!==false;
 if(!OVR||typeof OVR!=="object"||Array.isArray(OVR))OVR={};if(!Array.isArray(cu))cu=[];cu=cu.filter(function(c){return c&&typeof c==="object"&&c.id!=null})})();
 var BASE=CFG.agents.map(function(a){return[a.id,a.name,a.mgPerMl,a.maxMgPerKg,a.group,a.enabled?1:0]});
-function A(raw){var f=(NEO&&!raw)?1-Math.min(90,Math.max(0,S.neoRed||0))/100:1,fin=function(v){return typeof v==="number"&&isFinite(v)};
-return BASE.map(function(b){var o=OVR[b[0]]||{},k=fin(o.k)&&o.k>=0?o.k:b[3],on=o.on!=null?!!o.on:!!b[5];if(NEO&&!raw&&b[4]=="pr")on=false;return{id:b[0],name:b[1],c:b[2],k:k*f,g:b[4],on:on}}).concat(cu.map(function(c){var inv=!(fin(c.c)&&c.c>0)||!(fin(c.k)&&c.k>=0);return{id:String(c.id),name:String(c.name||"Custom"),c:raw?c.c:(inv?10:c.c),k:(fin(c.k)&&c.k>=0?c.k:0)*(raw?1:f),g:String(c.id),on:!inv&&c.on!==false,cu:1,inv:inv}}))}
-var $=function(i){return document.getElementById(i)},fl=function(v,d){var m=Math.pow(10,d==null?1:d);return Math.floor(v*m+1e-9)/m};
+function A(raw){return Admix.agents(BASE,OVR,cu,S,NEO,raw)}
+var $=function(i){return document.getElementById(i)},fl=Admix.fl;
 var st={},CH=null;
-function lbwRaw(f,w,H,male,bmi){switch(f){case"boer":return male?.407*w+.267*H-19.2:.252*w+.473*H-48.3;case"james":return male?1.1*w-128*Math.pow(w/H,2):1.07*w-148*Math.pow(w/H,2);case"hume":return male?.3281*w+.33929*H-29.5336:.29569*w+.41813*H-43.2933;case"peters":return 3.8*.0215*Math.pow(w,.6469)*Math.pow(H,.7236);default:return male?9270*w/(6680+216*bmi):9270*w/(8780+244*bmi)}}
-function lbwF(w,hm,male,bmi){var H=hm*100,r=lbwRaw(PM?S.lbwP:S.lbw,w,H,male,bmi);if(!(r>=0.25*w))r=lbwRaw("jan",w,H,male,bmi);return Math.max(0,Math.min(w,r))}
+var lbwRaw=Admix.lbwRaw;
 var PM=false,PDIS=false,WM="auto";try{var pp=JSON.parse(localStorage.getItem(SK+"Pt")||"{}");if(pp.wm)WM=pp.wm;PM=!!pp.pm;PDIS=!!pp.pdis;if(pp.au){var ue=document.getElementById("ageu");ue.value=pp.au;ue.dataset.u=pp.au}}catch(e){}
 var CEN=@@json:cen@@,CAL=@@json:cal@@;
 var IMG={F:"@@img:bmiGirls@@",M:"@@img:bmiBoys@@"};
-function ageY(){var v=+$("age").value;if(!(v>0))return 0;var u=PM?$("ageu").value:"y";return v*({d:1/365.25,w:7/365.25,m:1/12,y:1}[u])}
-function cen(s,k,a){var g=CEN[s][k][a<4?0:1],i;if(a<=g[0][0])return g[0][1];if(a>=g[g.length-1][0])return g[g.length-1][1];for(i=1;i<g.length;i++)if(g[i][0]>=a){var p=g[i-1],q=g[i];return p[1]+(q[1]-p[1])*(a-p[0])/(q[0]-p[0])}}
-function pt(){var w=+$("w").value,h=+$("h").value,age=ageY();if(h>3)h=h/100;var hm=h>0?h:0;if(!(h>=(PM?0.05:0.25)))h=0;
-var male=$("s").value=="Male",sx=male?"M":"F",bmi=w&&h?w/(h*h):0,lbw=bmi?lbwF(w,h,male,bmi):0,T=S.bmi,bw=5,wt=w,mode="TBW",tbwOnly=false,band="",cc=null;
-if(PM){if(bmi&&age>=2&&age<=20){T=cen(sx,S.pc,age);bw=T*0.1;cc={c91:cen(sx,"c91",age),c98:cen(sx,"c98",age),c996:cen(sx,"c996",age)};band=bmi>=cc.c996?"severely obese (\u226599.6th)":bmi>=cc.c98?"obese (\u226598th)":bmi>=cc.c91?"overweight (\u226591st)":"below 91st centile"}else{tbwOnly=true;T=1e9}}
-if(WM=="lbw"&&lbw>0){wt=lbw;mode="LBW (manual)"}else if(WM=="tbw"){mode=bmi>=T?"TBW (manual)":"TBW"}
-else if(bmi>=T){if(S.blend&&bmi<T+bw){wt=w+(lbw-w)*((bmi-T)/bw);mode="Adjusted (TBW\u2192LBW)"}else{wt=lbw;mode="LBW"}}
-return{neo:PM&&age>0&&age<=0.2501,w:w,h:h,bmi:bmi,lbw:lbw,wt:wt,mode:mode,ok:w>0&&w<=300,noh:!h,hm:hm,tbwOnly:tbwOnly,thr:(PM&&!tbwOnly)?T:0,band:band,cc:cc,age:age,sx:sx}}
+function ageY(){return Admix.ageYears($("age").value,$("ageu").value,PM)}
+function cen(s,k,a){return Admix.cen(CEN,s,k,a)}
+function pt(){return Admix.patient({w:$("w").value,h:$("h").value,age:ageY(),male:$("s").value=="Male",PM:PM,WM:WM,S:S,CEN:CEN})}
 function plaus(P){var m=[],a=P.age,b=function(id){var v=$(id).value;return v!==""&&!(+v>0)};
 if(b("w"))m.push("weight must be a positive number");if(b("h"))m.push("height must be a positive number");if(b("age"))m.push("age must be a positive number");
 if(P.w>300)m.push("weight over 300 kg: calculations paused until corrected");else if(P.w>0&&P.w<0.4)m.push("weight "+fl(P.w,1)+" kg is outside the usual range");
@@ -220,44 +214,7 @@ function pmUI(P){var tr=ptrig(P);if(!!P.neo!==NEO){NEO=!!P.neo;fillSel()}$("ageu
 $("pmrow").style.display=(PM||(tr.length&&!PDIS))?"flex":"none";$("pmgo").style.display=PM?"none":"";$("pmb").style.display=PM?"":"none";$("pmx").style.display=PM?"":"none";$("pmh").textContent=PM?"":tr.join(", ");var ag=ageY(),ex=PM&&(ag>0?ag>16:(P.h>1.2&&P.w>=30));$("pmx").textContent=ex?"Exit paediatric mode?":"Exit";$("pmx").className=ex?"chip adultx":"chip";$("bmid").style.display=PM?"":"none";if(PM)bmiChart(P)}
 function fillSel(){var en=A().filter(function(a){return a.on});[["d1","b25"],["d2","lp1"],["k1","b75"]].forEach(function(x){var s=$(x[0]),cur=s.value||x[1];s.innerHTML=en.map(function(a){return'<option value="'+a.id+'">'+esc(a.name)+"</option>"}).join("");if(en.some(function(a){return a.id==cur}))s.value=cur;else if(en.length)s.selectedIndex=0})}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return m[a.length][b.length]}
-var DL=["lidocaine","lignocaine","lidocain","lignocain","xylocaine","xylocain","lidocaina"];
-function isL(s){return (s.match(/[a-z]{4,}/g)||[]).some(function(w){return /^(lido|lidc|ligno|lignc|xylo|xyl[oi]c)/.test(w)||DL.some(function(d){return lev(w,d)<=2})})}
-function isC(s){return /co[\s\-]?ph|cophen|phenylc|phenylk|co[\s\-]?fen|cofen/.test(s)||(s.match(/[a-z]{7,}/g)||[]).some(function(w){return lev(w,"cophenylcaine")<=3})}
-var NW={zero:0,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20,thirty:30,forty:40,fifty:50,half:0.5,one:1};
-function prep(t){t=String(t||"");t=t.replace(/(\d),(\d{3})(?!\d)/g,"$1$2").replace(/(\d),(\d{1,2})(?!\d)/g,"$1.$2").replace(/per\s+cent/gi,"percent");return t.replace(/\b(zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|half|one(?!\s+(?:nostril|side)))\b/gi,function(m){return NW[m.toLowerCase()]})}
-function unit(t){if(!t)return"";if(/^(ml|mls|cc|ccs|mil+i?l?i?t.*)$/.test(t)||/^millil/.test(t)||t=="lm"||(t.length>=2&&t.length<=3&&!/^(mg|mgs|no|in|on|of|at|to|or|and)$/.test(t)&&lev(t,"ml")<=1))return"ml";if(/^(mg|mgs|milligrams?|mgm)$/.test(t))return"mg";if(/^(g|gm|gms|grams?|grammes?)$/.test(t))return"g";if(t=="%"||t=="percent"||t=="pc")return"pct";if(/^spr/.test(t)||(t.length>=4&&(lev(t,"sprays")<=2||lev(t,"squirts")<=2||lev(t,"puffs")<=1||lev(t,"pumps")<=1||lev(t,"actuations")<=2)))return"sp";return""}
-function segParse(raw){var s=prep(raw).toLowerCase().replace(/×/g,"x").replace(/(\d)([a-z%])/g,"$1 $2").replace(/([a-z%])(\d)/g,"$1 $2"),C=isC(s),L=isL(s)||C;if(!L)return{skip:raw.trim()};
-var tk=s.match(/\d+(?:\.\d+)?|[a-z]+|%/g)||[],ml=null,mg=null,pct=null,sp=null,cn=null,fl=[],xm=1,dup=0;
-tk.forEach(function(t,i){if(t!="x")return;var a=tk[i+1],b=tk[i-1];if(/^\d/.test(a||"")&&!unit(tk[i+2]))xm=+a;else if(/^\d/.test(b||"")&&/^\d/.test(a||""))xm=+b});
-tk.forEach(function(t,i){if(!/^\d/.test(t))return;var n=+t,u=unit(tk[i+1]),nx=tk.slice(i+1,i+4).join(" ");if((u=="ml"&&ml!=null)||(u=="pct"&&pct!=null)||(u=="mg"&&mg!=null&&tk[i+2]!="ml"))dup=1;if(u=="ml"&&ml==null)ml=n;else if(u=="mg"&&tk[i+2]=="ml"&&cn==null)cn=n;else if(u=="mg"&&mg==null)mg=n;else if(u=="g"&&mg==null)mg=n*1000;else if(u=="pct"&&pct==null)pct=n;else if(u=="sp"&&sp==null)sp=n;else if(!u&&tk[i-1]=="x"&&sp==null&&xm==1)sp=n;else if(!u&&/(per|each|every)\s+(nostril|side)/.test(nx)&&sp==null)sp=n});
-if(cn!=null&&pct==null)pct=cn/10;
-if(sp==null&&ml==null&&mg==null&&xm>1&&(C||pct==10||/xylo/.test(s))){sp=xm;xm=1}
-var mult=1,wd=s.match(/[a-z]+/g)||[],nI=[];wd.forEach(function(w,i){if((w.length>=4&&(lev(w,"nostril")<=2||lev(w,"nostrils")<=2))||/^sides?$/.test(w))nI.push(i)});
-var bi=wd.some(function(w){return /^bilat/.test(w)||(w.length>=6&&lev(w,"bilateral")<=2)}),each=wd.some(function(w,i){return nI.some(function(j){return Math.abs(i-j)<=2&&i!=j&&(/^(per|each|every|both|bd|bds)$/.test(w)||(w.length>=4&&(lev(w,"each")<=2||lev(w,"both")<=1||lev(w,"every")<=1)))})});
-if(bi||each)mult=2;var uni=/unilateral|\b(one|1|single|left|right|lt|rt)\s+(nostril|side)/.test(s)||wd.some(function(w){return w.length>=7&&lev(w,"unilateral")<=2});
-var label=raw.trim(),out=0,xs=function(){return xm>1?" × "+xm:""};
-if(C){var per=pct||S.cpMg;if(pct&&pct!=5)fl.push("concentration "+pct+"% used");
-if(sp!=null){out=sp*mult*per;label="Co-phenylcaine: "+sp+" spray"+(sp==1?"":"s")+(mult==2?" × 2 nostrils":"")+" × "+per+" mg";if(mult==1&&!uni)fl.push("nostril count not stated: counted as TOTAL sprays (double it if per nostril)")}
-else if(ml!=null){out=ml*50*xm;label="Co-phenylcaine "+ml+" ml × 50 mg/ml (5%)"+xs()}
-else if(mg!=null){out=mg*xm;label="Co-phenylcaine "+mg+" mg lidocaine"+xs()}
-else{out=S.cpN*per;label="Co-phenylcaine (amount unstated)";fl.push("assumed "+S.cpN+" sprays total (5 per nostril)")}}
-else{if(ml!=null&&pct!=null){out=ml*pct*10*xm;label="Lidocaine "+ml+" ml × "+pct+"%"+xs()}
-else if(sp!=null){var ps=pct==10||pct==null?10:pct;out=sp*mult*ps;label="Lidocaine "+sp*mult+" sprays × "+ps+" mg";if(pct==null)fl.push("assumed 10% pump spray (10 mg/spray)");else if(pct!=10)fl.push("assumed 0.1 ml per spray")}
-else if(mg!=null){out=mg*xm;label="Lidocaine "+mg+" mg"+xs()}
-else if(ml!=null){fl.push("concentration missing: not counted");label="Lidocaine "+ml+" ml (no %)";return{label:label,mg:0,fl:fl,bad:1}}
-else{fl.push("no quantity found: not counted");return{label:label,mg:0,fl:fl,bad:1}}}
-if(out>3000)fl.push("implausibly large (over 3000 mg): check units");
-var warn=0;if(dup){fl.push("more than one amount in this entry: only the first was counted. Separate items with commas.");warn=1}
-if(!C&&pct!=null&&mg!=null&&ml==null&&sp==null&&cn==null){fl.push('"mg" given with a % concentration: did you mean ml? Counted as mg.');warn=1}
-return{label:label,mg:out,fl:fl,bad:warn}}
-var OTH=/bupi|levobup|ropiv|prilo|chloroproc|mepiv|articain|tetracain|cocain|phenyleph|adrenal|epineph|ephedr|emla|ketamin|propofol|fentan|morphin|dexmed|clonid|midazol|atropin|glycopyrr/;
-function airway(){var raw=$("at").value,t=prep(raw),items=[],sk=[],ot=[],src="Rules",last=null;
-t.split(/[,;\n+&]|\band\b|\bthen\b|\bplus\b|\bfollowed by\b/i).forEach(function(x){var s0=x.trim();if(!s0)return;var r=segParse(s0);
-if(r.skip){if(OTH.test(s0.toLowerCase())){ot.push(s0);return}if(/\d/.test(s0)&&last&&!last.C){if(last.r.bad){items.pop();var tx=last.text+" "+s0;r=segParse(tx);items.push(r);last={text:tx,r:r,C:last.C};return}
-var r2=segParse("lidocaine "+s0);if(!r2.skip&&!r2.bad){r2.fl=r2.fl.concat(["drug name not stated: assumed lidocaine"]);items.push(r2);last={text:"lidocaine "+s0,r:r2,C:false};return}}
-sk.push(s0);return}
-items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
+function airway(){var raw=$("at").value,PA=Admix.parseAirway(raw,S),items=PA.items,sk=PA.sk,ot=PA.ot,src="Rules";
 st.airItems=items.map(function(r){return r.label+": "+fl(r.mg,0)+" mg"+(r.fl.length?" ("+r.fl.join("; ")+")":"")});var tot=0,h="";items.forEach(function(r){tot+=r.mg;h+='<tr class="'+(r.bad?"e":r.fl.length?"w":"")+'"><td>'+esc(r.label)+(r.fl.length?'<div class="mu">'+esc(r.fl.join("; "))+"</div>":"")+'</td><td class=r><b>'+fl(r.mg,0)+" mg</b></td></tr>"});
 var un=sk.filter(function(s){return /\d/.test(s)}),ig=sk.filter(function(s){return !/\d/.test(s)}).concat(ot);
 un.forEach(function(s){h+='<tr class="e"><td>'+esc(s)+'<div class="mu">no drug name found: NOT counted</div></td><td class=r><b>?</b></td></tr>'});
@@ -274,7 +231,7 @@ $("newpt").onclick=function(e){e.stopPropagation();["w","h","age","at","am","u1"
 try{var th=localStorage.getItem(SK+"Theme");if(th)document.documentElement.setAttribute("data-theme",th)}catch(e){}
 $("thm").onclick=function(){var d=document.documentElement.getAttribute("data-theme")||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),n=d=="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem(SK+"Theme",n)}catch(e){}};
 function calc(){syncUI();var P=pt();st.P=P;pmUI(P);var used=airway()+(+$("am").value||0);$("ap").textContent=fl(used,1)+" mg";$("asum").textContent=used>0?fl(used,0)+" mg lidocaine used":"None entered";
-var pb=P.lbw||P.w,pool=pb?Math.min(pb*S.lidoCap,S.lidoMax):0,fr=pool?Math.max(0,(pool-used)/pool):1;st.fr=fr;st.used=used;st.pool=pool;var W=P.wt*fr;st.W=W;
+var AP=Admix.airwayPool(P,S,used),pb=AP.pb,pool=AP.pool,fr=AP.fr;st.fr=fr;st.used=used;st.pool=pool;var W=AP.W;st.W=W;
 $("hw").textContent=P.ok?((PM?"👶 ":"")+"Dosing weight "+fl(P.wt,1)+" kg · "+P.mode):"Enter weight";
 $("pinfo").textContent=P.ok?(P.noh?"TBW "+P.w+" kg":"BMI "+fl(P.bmi,1).toFixed(1)+" · LBW "+fl(P.lbw,1)+" kg ("+(PM?S.lbwP:S.lbw)+") · TBW "+P.w+" kg"+(PM&&P.thr?" · "+({c91:"91st",c98:"98th",c996:"99.6th"}[S.pc])+" centile BMI "+fl(P.thr,1):"")):"👋 Start by entering the patient\u2019s weight. Height is optional and adds lean body weight.";
 var ay=ageY();$("pwarn").innerHTML=plaus(P)+(P.ok&&P.noh?'<div class="alert">No height entered: total body weight (TBW) is always used for all calculations, including the airway lidocaine pool. Enter height to allow LBW.</div>':"")+(PM&&P.ok&&ay>0&&ay<2?'<div class="alert"><b>Under 2 years:</b> only total body weight (TBW) is used.</div>':(PM&&P.ok&&!P.noh&&P.tbwOnly?'<div class="alert">'+(ay>20?'Age over 20 years: BMI centiles cannot be used, so total body weight (TBW) is used for all calculations.':'No age (2–20 years) entered: BMI centiles cannot be used, so total body weight (TBW) is used for all calculations. Enter age to allow LBW.')+'</div>':""))+(PM&&ay>0&&ay<=0.2501?'<div class="alert"><b>Neonate (3 months or under):</b> '+CFG.text.neonate+(S.neoRed>0?' <b>Dose limits reduced by '+S.neoRed+'%.</b>':'')+(BASE.some(function(b){var o=OVR[b[0]]||{};return b[4]=="pr"&&(o.on!=null?o.on:!!b[5])})?' Prilocaine is locked out.':'')+'</div>':"")+(PM&&ay>0.2501&&ay<=1.0001?'<div class="alert"><b>Infant (1 year or younger):</b> '+CFG.text.infant+'</div>':"");
@@ -284,13 +241,13 @@ var age=ageY();if(age>70)$("pbadge").innerHTML+=' <span class="badge w">Age &gt;
 var aw="";if(used>0){aw='<div class="alert'+(used>=pool-0.5?" e":"")+'">'+(used>=pool-0.5?"AIRWAY LIDOCAINE HAS "+(used>pool+0.5?"EXCEEDED":"REACHED")+" THE MAXIMUM: "+fl(used,0)+" mg used, maximum "+fl(pool,0)+" mg"+(used>pool+0.5?" (over by "+fl(used-pool,0)+" mg, "+ovp(used/pool)+" over)":"")+". No further lidocaine; reduce other agents.":"Used "+fl(used,0)+" mg of "+fl(pool,0)+" mg. All doses scaled to "+fl(fr*100,0)+"% remaining.")+"</div>"}$("aw").innerHTML=aw;
 st.en=A().filter(function(a){return a.on});st.M={};st.en.forEach(function(a){st.M[a.id]=a});
 var rows="<tr><th>Agent</th><th class=r>Max ml</th><th class=\"r sm\">Max mg</th><th class=\"r sm\">mg/kg</th></tr>";
-st.en.forEach(function(a){var mx=fl(W*a.k/a.c,1),mg=fl(mx*a.c,0),c=!P.ok?"":fr<=0||mx<=0?"e":fr<1?"w":"";rows+='<tr data-a="'+a.id+'" tabindex="0" class="'+c+(a.id==SEL?' hl':'')+'"><td>'+(c=="e"?"⛔ ":c=="w"?"⚠️ ":"")+esc(a.name)+'</td><td class=r><b class="pill">'+(P.ok?mx:"—")+'</b></td><td class="r sm">'+(P.ok?mg:"—")+'</td><td class="r sm">'+a.k+"</td></tr>"});$("tb").innerHTML=rows;sasText();
+st.en.forEach(function(a){var md=Admix.maxDose(W,a),mx=md.ml,mg=md.mg,c=!P.ok?"":fr<=0||mx<=0?"e":fr<1?"w":"";rows+='<tr data-a="'+a.id+'" tabindex="0" class="'+c+(a.id==SEL?' hl':'')+'"><td>'+(c=="e"?"⛔ ":c=="w"?"⚠️ ":"")+esc(a.name)+'</td><td class=r><b class="pill">'+(P.ok?mx:"—")+'</b></td><td class="r sm">'+(P.ok?mg:"—")+'</td><td class="r sm">'+a.k+"</td></tr>"});$("tb").innerHTML=rows;sasText();
 dual();dil();lipid();planUpdate();if($("ov").classList.contains("on"))working();try{localStorage.setItem(SK+"Pt",JSON.stringify({w:$("w").value,h:$("h").value,s:$("s").value,age:$("age").value,au:$("ageu").value,wm:WM,pm:PM,pdis:PDIS}))}catch(e){}}
-function M(a){return st.W*a.k/a.c}
+function M(a){return Admix.maxMlRaw(st.W,a)}
 function dual(){var a=st.M[$("d1").value],b=st.M[$("d2").value];st.dual=null;st.ch=null;
 if(!st.P.ok){$("dr").innerHTML='<p class=mu>Enter patient details.</p>';$("cw").style.display="none";$("ur").innerHTML="";return}
 if(!a||!b){$("dr").innerHTML='<div class="alert">Enable at least two agents in Expert settings.</div>';$("cw").style.display="none";$("ur").innerHTML="";return}
-var m1=M(a),m2=M(b);if(!(m1>0&&m2>0)){$("dr").innerHTML='<div class="alert e">No safe dose remains for one or both agents (the airway lidocaine pool is used up, or a limit is zero).</div>';$("cw").style.display="none";$("ur").innerHTML="";return}var mix=fl(2*m1*m2/(m1+m2),1);st.dual={a:a,b:b,m1:m1,m2:m2,mix:mix,u1:+$("u1").value||0,u2:+$("u2").value||0};
+var m1=M(a),m2=M(b);if(!(m1>0&&m2>0)){$("dr").innerHTML='<div class="alert e">No safe dose remains for one or both agents (the airway lidocaine pool is used up, or a limit is zero).</div>';$("cw").style.display="none";$("ur").innerHTML="";return}var mix=Admix.pairLimits(a,b,st.W).mix;st.dual={a:a,b:b,m1:m1,m2:m2,mix:mix,u1:+$("u1").value||0,u2:+$("u2").value||0};
 var o='<table><tr><td>Max total of a 1:1 mixture</td><td class=r><b>'+mix+' ml</b></td></tr></table>';
 if(a.id==b.id)o+='<div class="alert">Same agent selected twice. Choose two different agents.</div>';
 o+='<div class="alert">If injected intravascularly, even a dose under the maximum can cause toxicity.</div>';$("cw").style.display="";$("dr").innerHTML=o;chart(a,b,m1,m2);usedUI(a,b,m1,m2)}
@@ -305,10 +262,10 @@ s+='<text class="ht" x="'+lx+'" y="'+ly+'" text-anchor="middle" transform="rotat
 s+='<text x="'+(c.L+c.PW/2)+'" y="'+(c.H-6)+'" text-anchor="middle" style="font-size:12px;font-weight:600;fill:var(--tx)">'+esc(sn(a.name,40))+' (ml)</text><text x="12" y="'+(c.T+c.PH/2)+'" text-anchor="middle" transform="rotate(-90 12 '+(c.T+c.PH/2)+')" style="font-size:12px;font-weight:600;fill:var(--tx)">'+esc(sn(b.name,34))+' (ml)</text>';
 if((d.u1||d.u2)&&d.u1<=m1&&d.u2<=m2)s+='<rect x="'+(X(d.u1)-5)+'" y="'+(Y(d.u2)-5)+'" width="10" height="10" transform="rotate(45 '+X(d.u1)+" "+Y(d.u2)+')" fill="var(--pr)" stroke="var(--card)" stroke-width="2"/><text class="ht" x="'+(X(d.u1)+10)+'" y="'+(Y(d.u2)-8)+'" style="fill:var(--pr);font-weight:600">Used</text>';
 st.ch={a:a,b:b,m1:m1,m2:m2};var key=a.id+"|"+b.id,pm="";if(CH&&CH.k!=key){CH=null;$("p1").value="";$("p2").value=""}
-if(CH&&CH.row!=null){var rf=CH.row/10;CH.x=m1*(1-rf);CH.y=m2*rf;CH.snap=true}
+if(CH&&CH.row!=null){var cp=Admix.chartFromRow(CH.row,m1,m2);CH.x=cp.x;CH.y=cp.y;CH.snap=true}
 $("pl1").textContent=a.name;$("pl2").textContent=b.name;
-if(CH&&CH.src){var vv=CH.val,o1=CH.src==1;if(o1){CH.x=Math.min(vv,m1);CH.y=m2*(1-CH.x/m1)}else{CH.y=Math.min(vv,m2);CH.x=m1*(1-CH.y/m2)}CH.snap=true;if(vv>(o1?m1:m2))pm='<div class="alert e">That exceeds the maximum for '+esc((o1?a:b).name)+' ('+fl(o1?m1:m2,1)+' ml): over by '+ovp(vv/(o1?m1:m2))+'.</div>';$(o1?"p2":"p1").value=fl(o1?CH.y:CH.x,1)}
-if(CH){var dd=CH.src?1:dec,x1=fl(Math.min(CH.x,m1),dd),y1=fl(Math.min(CH.y,m2),dd);if(!CH.src){$("p1").value=x1;$("p2").value=y1}}
+if(CH&&CH.src){var vv=CH.val,o1=CH.src==1;var cv=Admix.chartFromVolume(CH.src,vv,m1,m2);CH.x=cv.x;CH.y=cv.y;CH.snap=true;if(vv>(o1?m1:m2))pm='<div class="alert e">That exceeds the maximum for '+esc((o1?a:b).name)+' ('+fl(o1?m1:m2,1)+' ml): over by '+ovp(vv/(o1?m1:m2))+'.</div>';$(o1?"p2":"p1").value=fl(o1?CH.y:CH.x,1)}
+if(CH){var dd=CH.src?1:dec,cf=Admix.chartFraction(CH.x,CH.y,m1,m2,dd),x1=cf.x1,y1=cf.y1;if(!CH.src){$("p1").value=x1;$("p2").value=y1}}
 var mt="Tap the chart, or type the ml of either agent: the other fills in with the maximum still safe.",mw=0,mc="var(--okt)";
 if(CH&&CH.k==key){var fr=x1/m1+y1/m2,bad=fr>1,col=bad?"var(--ert)":"var(--okt)";
 s+='<line x1="'+X(CH.x)+'" y1="'+Y(CH.y)+'" x2="'+X(CH.x)+'" y2="'+(c.T+c.PH)+'" stroke="'+col+'" stroke-dasharray="3 3"/><line x1="'+X(CH.x)+'" y1="'+Y(CH.y)+'" x2="'+c.L+'" y2="'+Y(CH.y)+'" stroke="'+col+'" stroke-dasharray="3 3"/>'+(CH.snap?'<circle cx="'+X(CH.x)+'" cy="'+Y(CH.y)+'" r="10" fill="none" stroke="'+col+'" stroke-width="2"/>':"")+'<circle cx="'+X(CH.x)+'" cy="'+Y(CH.y)+'" r="6" fill="'+col+'" stroke="var(--card)" stroke-width="2"/>';
@@ -316,13 +273,13 @@ mw=Math.min(100,fr*100);mc=col;var pc=fl(fr*100,0);mt=pc+"% of the toxic limit"+
 $("pm").innerHTML=pm;$("mi").style.width=mw+"%";$("mi").style.background=mc;$("mt").textContent=mt;
 s+="</svg>";var tb='<tr><th>'+esc(a.name)+' (ml)</th><th></th><th>'+esc(b.name)+' (ml)</th></tr>',dt=$("cwb").firstChild,op=dt&&dt.open;if(TRK!=key){TR=-1;TRK=key}for(i=0;i<=10;i++){var f=i/10;tb+='<tr data-i="'+i+'" tabindex="0"'+(i==TR?' class="hl"':'')+'><td>'+fl(m1*(1-f),dec)+'</td><td class="pp">+</td><td>'+fl(m2*f,dec)+'</td></tr>'}
 $("cwa").innerHTML='<h2 style="margin-top:14px">Maximum dosing chart</h2>'+s;$("cwb").innerHTML='<details'+(op?' open':'')+'><summary><b>Quick reference table: maximum combinations</b></summary><p class="mu" style="margin:8px 0 0">Read each <b>row across</b>: the two numbers on one row are the most you can give <b>together</b>. Never mix numbers from different rows. <b>Tap a row</b> to select it.</p><table class="rt">'+tb+'</table><div id="trs"></div><p class="mu" style="text-align:center">Volumes are rounded down.</p></details>';trText()}
-function ovp(r){var x=(r-1)*100;return (x>0&&x<0.5?"<1":Math.round(x))+"%"}
+function ovp(r){return Admix.overText(r)}
 function planUpdate(){var P=st.P,pa=[],bad=false,ov="",dec=P&&P.wt<20?1:0,a;
 if(!P||!P.ok){$("plan").style.display="none";$("planp").innerHTML="";return}
 if(st.used>0){var ov0=st.pool>0&&st.used>st.pool+0.5;if(st.used>=st.pool-0.5)bad=true;if(ov0)ov=" by "+ovp(st.used/st.pool);pa.push('<b>'+fl(st.used,0)+' mg</b> lidocaine (airway topicalisation'+(st.used>=st.pool-0.5?', '+(ov0?'over':'at')+' the '+fl(st.pool,0)+' mg maximum'+(ov0?' by '+ovp(st.used/st.pool):''):'')+')')}
-if(SEL&&st.M&&st.M[SEL]){a=st.M[SEL];var mx=fl(st.W*a.k/a.c,1);if(mx<=0)bad=true;pa.push('<b>'+mx+' ml</b> '+esc(a.name))}
-else if(CH&&st.ch&&CH.k==st.ch.a.id+"|"+st.ch.b.id){var c=st.ch,d=CH.src?1:dec,x1=fl(Math.min(CH.x,c.m1),d),y1=fl(Math.min(CH.y,c.m2),d);var fr=x1/c.m1+y1/c.m2;if(fr>1){bad=true;ov=" by "+ovp(fr)}if(x1>0)pa.push('<b>'+x1+' ml</b> '+esc(c.a.name));if(y1>0)pa.push('<b>'+y1+' ml</b> '+esc(c.b.name));if(fr<0.8)pa.push('<b>'+fl(fr*100,0)+'%</b> of max dose used')}
-else if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual,f=q.u1/q.m1+q.u2/q.m2;if(f>=1)bad=true;if(f>1)ov=" by "+ovp(f);if(q.u1)pa.push('<b>'+q.u1+' ml</b> '+esc(q.a.name)+' (given)');if(q.u2)pa.push('<b>'+q.u2+' ml</b> '+esc(q.b.name)+' (given)');pa.push(fl(f*100,0)+'% of max dose used');if(f<1)pa.push('<b>Remaining:</b> up to <b>'+fl((1-f)*q.m1,1)+' ml</b> '+esc(q.a.name)+' <u>or</u> <b>'+fl((1-f)*q.m2,1)+' ml</b> '+esc(q.b.name))}
+if(SEL&&st.M&&st.M[SEL]){a=st.M[SEL];var mx=Admix.maxDose(st.W,a).ml;if(mx<=0)bad=true;pa.push('<b>'+mx+' ml</b> '+esc(a.name))}
+else if(CH&&st.ch&&CH.k==st.ch.a.id+"|"+st.ch.b.id){var c=st.ch,d=CH.src?1:dec,cf=Admix.chartFraction(CH.x,CH.y,c.m1,c.m2,d),x1=cf.x1,y1=cf.y1;var fr=cf.fr;if(fr>1){bad=true;ov=" by "+ovp(fr)}if(x1>0)pa.push('<b>'+x1+' ml</b> '+esc(c.a.name));if(y1>0)pa.push('<b>'+y1+' ml</b> '+esc(c.b.name));if(fr<0.8)pa.push('<b>'+fl(fr*100,0)+'%</b> of max dose used')}
+else if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual,f=Admix.fractionUsed(q.u1,q.u2,q.m1,q.m2);if(f>=1)bad=true;if(f>1)ov=" by "+ovp(f);if(q.u1)pa.push('<b>'+q.u1+' ml</b> '+esc(q.a.name)+' (given)');if(q.u2)pa.push('<b>'+q.u2+' ml</b> '+esc(q.b.name)+' (given)');pa.push(fl(f*100,0)+'% of max dose used');if(f<1)pa.push('<b>Remaining:</b> up to <b>'+fl((1-f)*q.m1,1)+' ml</b> '+esc(q.a.name)+' <u>or</u> <b>'+fl((1-f)*q.m2,1)+' ml</b> '+esc(q.b.name))}
 var h=pa.length?(bad?'<b>\u26a0 EXCEEDS MAXIMUM'+ov.toUpperCase()+'</b> \u00b7 ':'')+'<span class="pl0">Anaesthetic plan:</span> '+pa.join(', '):'';
 $("plan").style.display=h?"":"none";$("plan").classList.toggle("bad",!!bad);$("plan").innerHTML=h;$("planp").className="pronly"+(bad?" bad":"");$("planp").innerHTML=h}
 $("plan").addEventListener("click",function(){this.classList.toggle("x")});
@@ -330,7 +287,7 @@ function pick(k){if(k!="single")SEL=null;if(k=="used"||k=="single"){CH=null;TR=-
 $("used").addEventListener("input",function(e){var t=e.target;if((t.id=="u1"||t.id=="u2")&&t.value!=="")pick("used")},true);
 $("used").addEventListener("click",function(e){var d=e.target.dataset;if(d.u&&d.n!="c")pick("used")},true);
 var SEL=null;
-function sasText(){var el=$("sas"),a=SEL&&st.M?st.M[SEL]:null;if(!el)return;if(!a||!st.P.ok){el.innerHTML="";return}var mx=fl(st.W*a.k/a.c,1),mg=fl(mx*a.c,0),bad=mx<=0;el.innerHTML='<div class="selbox'+(bad?' bad':'')+'"><b>Selected agent, maximum amount:</b><div style="margin-top:6px;font-size:17px"><b>'+mx+' ml</b> '+esc(a.name)+'</div><div style="margin-top:6px;font-size:12px;opacity:.85">'+mg+' mg ('+a.k+' mg/kg) for this patient.</div></div>'}
+function sasText(){var el=$("sas"),a=SEL&&st.M?st.M[SEL]:null;if(!el)return;if(!a||!st.P.ok){el.innerHTML="";return}var md=Admix.maxDose(st.W,a),mx=md.ml,mg=md.mg,bad=mx<=0;el.innerHTML='<div class="selbox'+(bad?' bad':'')+'"><b>Selected agent, maximum amount:</b><div style="margin-top:6px;font-size:17px"><b>'+mx+' ml</b> '+esc(a.name)+'</div><div style="margin-top:6px;font-size:12px;opacity:.85">'+mg+' mg ('+a.k+' mg/kg) for this patient.</div></div>'}
 $("tb").addEventListener("click",function(e){var tr=e.target.closest&&e.target.closest("tr[data-a]");if(!tr)return;pick("single");SEL=tr.dataset.a;calc()});
 var TR=-1,TRK="";
 function trText(){var c=st.ch,el=$("trs");if(!el)return;if(TR<0||!c){el.innerHTML="";return}var dec=st.P.wt<20?1:0,f=TR/10;el.innerHTML='<div class="selbox"><b>Selected row, maximum amounts:</b><div style="margin-top:6px;font-size:17px"><b>'+fl(c.m1*(1-f),dec)+' ml</b> '+esc(c.a.name)+'</div><div style="font-size:17px"><b>'+fl(c.m2*f,dec)+' ml</b> '+esc(c.b.name)+'</div><div style="margin-top:6px;font-size:12px;opacity:.85">The most of each that fits within the combined safe limit for these two agents.</div></div>'}
@@ -340,7 +297,7 @@ if(sx<q.L-8||sx>q.L+q.PW+8||sy<q.T-8||sy>q.T+q.PH+8)return;sx=Math.min(Math.max(
 var px=q.L+q.PW,py=q.T+q.PH,dx=-q.PW,dy=-q.PH,t=Math.min(1,Math.max(0,((sx-px)*dx+(sy-py)*dy)/(dx*dx+dy*dy))),qx=px+t*dx,qy=py+t*dy,snap=Math.hypot(sx-qx,sy-qy)<14;if(snap){sx=qx;sy=qy}
 pick("chart");CH={k:c.a.id+"|"+c.b.id,x:(sx-q.L)/q.PW*c.m1,y:(q.T+q.PH-sy)/q.PH*c.m2,snap:snap};calc()}
 $("cwa").addEventListener("pointerdown",cpt);$("cwa").addEventListener("pointermove",cpt);
-function usedUI(a,b,m1,m2){var u1=st.dual.u1,u2=st.dual.u2,f=u1/m1+u2/m2,col=f<.8?"var(--okt)":f<1?"var(--wat)":"var(--ert)",rem=1-f,h;
+function usedUI(a,b,m1,m2){var u1=st.dual.u1,u2=st.dual.u2,f=Admix.fractionUsed(u1,u2,m1,m2),col=f<.8?"var(--okt)":f<1?"var(--wat)":"var(--ert)",rem=1-f,h;
 $("ul1").textContent=a.name+" used so far (ml)";$("ul2").textContent=b.name+" used so far (ml)";
 h='<div style="display:flex;justify-content:space-between"><b>'+fl(f*100,0)+'% of the limit used</b><span class="mu">'+(f<1?fl(rem*100,0)+"% left":"")+'</span></div><div class="meter"><i style="width:'+Math.min(100,f*100)+'%;background:'+col+'"></i></div>';
 if(f>=1)h+='<div class="alert e">'+(f>1?"Maximum exceeded by "+fl((f-1)*100,0)+"%. ":"Limit reached. ")+"Do not give any more of either agent.</div>";
@@ -353,14 +310,14 @@ function dil(){fillK2();var a=st.M[$("k1").value],b=st.M[$("k2").value],V=+$("kv
 if(!b){$("kr").innerHTML='<div class="alert">No lower concentration of this agent is enabled. Enable more concentrations in Expert settings.</div>';return}
 if(a.c<=b.c){o='<div class="alert e">Invalid: available concentration must be higher than desired.</div>'}
 else if(!(V>0)){o='<div class="alert">Enter the final volume (ml).</div>'}
-else{var hf=fl(V*b.c/a.c,1),df=Math.round((V-hf)*100)/100,ach=hf*a.c/V/10,tg=b.c/10;o='<table><tr><td>'+esc(a.name)+'</td><td class=r><b>'+hf+' ml</b></td></tr><tr><td>0.9% NaCl or Water for Injection</td><td class=r><b>'+df+' ml</b></td></tr><tr><td>Resulting '+esc(b.name)+'</td><td class=r>'+V+' ml</td></tr></table>';
+else{var dn=Admix.dilution(a,b,V),hf=dn.hf,df=dn.df,ach=dn.ach,tg=dn.tg;o='<table><tr><td>'+esc(a.name)+'</td><td class=r><b>'+hf+' ml</b></td></tr><tr><td>0.9% NaCl or Water for Injection</td><td class=r><b>'+df+' ml</b></td></tr><tr><td>Resulting '+esc(b.name)+'</td><td class=r>'+V+' ml</td></tr></table>';
 if(Math.abs(ach-tg)/tg>0.03)o+='<div class="alert">Rounded down to 0.1 ml: the mixture will be '+fl(ach,3)+'% (target '+tg+'%). Use a larger final volume for a more accurate concentration.</div>';
 if(a.g!=b.g)o+='<div class="alert e">Mismatched agents: these are different local anaesthetics.</div>';
 var t=V*b.c;if(st.W&&t>st.W*b.k)o+='<div class="alert e">Total dose ('+fl(t,0)+' mg) exceeds max for this patient ('+fl(st.W*b.k,0)+' mg), by '+ovp(t/(st.W*b.k))+'.</div>'}$("kr").innerHTML=o}
 var LM=CFG.last.default;try{var lm0=localStorage.getItem(SK+"Lm");if(lm0&&CFG.last.enabled.indexOf(lm0)>=0)LM=lm0}catch(e){}
 if(CFG.last.enabled.length<2)$("lseg").style.display="none";
 function nb(n,u,l,d){return'<div><div class="d">'+l+'</div><div class="n">'+n+'</div><div class="u">'+u+'</div><div class="d">'+d+'</div></div>'}
-function lastData(w){var R=Math.round,as=LM=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf)};o.b=over?100:as?Math.min(100,R(w*S.bolus)):R(w*S.bolus);return o}
+function lastData(w){return Admix.lastDoses(w,S,LM)}
 function lipid(){var w=st.P.wt,as=LM=="asra",R=Math.round;$("lsA").className=as?"":"a";$("lsS").className=as?"a":"";$("imA").style.display=as?"none":"";$("imS").style.display=as?"":"none";
 $("lcap").textContent=as?CFG.last.captions.asra:CFG.last.captions.aagbi;
 if(!w){$("lr").innerHTML='<div class="alert e">Enter the patient\u2019s weight to calculate lipid doses.</div>';return}
@@ -383,7 +340,7 @@ if(nat){if(!P){alert("Printing needs the PrintPlugin added to the Android app.")
 try{window.print()}catch(e){alert("Printing is not available here. Use your browser menu to print or save as PDF.")}}
 window.addEventListener("beforeprint",function(){if(+$("u1").value||+$("u2").value)$("used").open=true;[].forEach.call(document.querySelectorAll(".cl.col"),function(c){c.classList.remove("col")});if(st.used>0)$("airwayd").open=true;$("pd").textContent="Local anaesthetic dosing summary · printed "+new Date().toLocaleString("en-GB");printPrep()});
 function copySummary(){var P=st.P,t="LOCAL ANAESTHETIC DOSING SUMMARY\nWeight "+P.w+" kg, Height "+P.h+" m, BMI "+fl(P.bmi,1)+", LBW "+fl(P.lbw,1)+" kg ("+S.lbw+")\nDosing weight: "+fl(P.wt,1)+" kg ("+P.mode+")\nAirway lidocaine used: "+fl(st.used,0)+" mg (pool "+fl(st.pool,0)+" mg)\n";
-(st.en||[]).forEach(function(a){t+=a.name+": max "+fl(st.W*a.k/a.c,1)+" ml\n"});if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual;t+="Used: "+q.u1+" ml "+q.a.name+" + "+q.u2+" ml "+q.b.name+" ("+fl((q.u1/q.m1+q.u2/q.m2)*100,0)+"% of limit)\n"}
+(st.en||[]).forEach(function(a){t+=a.name+": max "+Admix.maxDose(st.W,a).ml+" ml\n"});if(st.dual&&(st.dual.u1||st.dual.u2)){var q=st.dual;t+="Used: "+q.u1+" ml "+q.a.name+" + "+q.u2+" ml "+q.b.name+" ("+fl((Admix.fractionUsed(q.u1,q.u2,q.m1,q.m2))*100,0)+"% of limit)\n"}
 var L=lastData(P.wt);t+="Intralipid 20% ("+(L.as?"ASRA":"AAGBI")+"): bolus "+L.b+" ml, infusion "+(L.over?"250 ml over 15-20 min":L.inf+" ml/h")+", max "+L.cap+" ml"+"\nGenerated "+new Date().toLocaleString("en-GB")+"\n"+CFG.build.stamp;
 var f=function(){alert("Copy failed. Select text manually.")};try{navigator.clipboard.writeText(t).then(function(){alert("Summary copied")},f)}catch(e){f()}}
 function working(){var el=$("wk");if(!el)return;var P=st.P;
@@ -425,17 +382,17 @@ T("5. Airway lidocaine pool",b);
 b="Max mg = weight for doses × limit (mg/kg). Max ml = max mg ÷ mg per ml, rounded <b>down</b> to 0.1 ml. Weight for doses = "+n(st.W,2)+" kg.";
 var raw0={};A(1).forEach(function(a){raw0[a.id]=a.k});
 b+='<div style="overflow-x:auto"><table><tr><th>Agent</th><th class="r">mg/ml</th><th class="r">limit mg/kg</th><th>Working</th><th class="r">max ml</th></tr>';
-st.en.forEach(function(a){var mx=fl(st.W*a.k/a.c,1),lim=NEO&&raw0[a.id]!==a.k?n(raw0[a.id],2)+" × "+n(a.k/raw0[a.id],2)+" = "+n(a.k,2):n(a.k,2);b+='<tr><td>'+esc(a.name)+'</td><td class="r">'+n(a.c,2)+'</td><td class="r">'+lim+'</td><td class="mu">'+n(st.W,1)+" × "+n(a.k,2)+" = "+n(st.W*a.k,0)+" mg ÷ "+n(a.c,2)+" = "+n(st.W*a.k/a.c,2)+'</td><td class="r"><b>'+mx+"</b></td></tr>"});
+st.en.forEach(function(a){var mx=Admix.maxDose(st.W,a).ml,lim=NEO&&raw0[a.id]!==a.k?n(raw0[a.id],2)+" × "+n(a.k/raw0[a.id],2)+" = "+n(a.k,2):n(a.k,2);b+='<tr><td>'+esc(a.name)+'</td><td class="r">'+n(a.c,2)+'</td><td class="r">'+lim+'</td><td class="mu">'+n(st.W,1)+" × "+n(a.k,2)+" = "+n(st.W*a.k,0)+" mg ÷ "+n(a.c,2)+" = "+n(st.W*a.k/a.c,2)+'</td><td class="r"><b>'+mx+"</b></td></tr>"});
 b+="</table></div>";T("6. Single agent maximum doses",b);
 /* 7 dual */
 var q=st.dual;
 if(q){b="Each agent has its own maximum (step 6): "+esc(q.a.name)+" "+n(fl(q.m1,1),1)+" ml, "+esc(q.b.name)+" "+n(fl(q.m2,1),1)+" ml.<br>When two agents are given together the fractions of each limit add up. The total must stay at or below 100%:<br>"+F("ml of agent 1 ÷ max 1 + ml of agent 2 ÷ max 2 ≤ 1")+"<br>The maximum chart line and the chart tap use this rule.<br>Maximum total of a 1:1 mixture: "+F("2 × max1 × max2 ÷ (max1 + max2) = 2 × "+n(q.m1,2)+" × "+n(q.m2,2)+" ÷ ("+n(q.m1,2)+" + "+n(q.m2,2)+") = "+n(q.mix,1)+" ml");
-if(q.u1||q.u2){var f=q.u1/q.m1+q.u2/q.m2;b+="<br>Used so far: "+n(q.u1,1)+" ml + "+n(q.u2,1)+" ml.<br>"+F("fraction used = "+n(q.u1,1)+" ÷ "+n(q.m1,2)+" + "+n(q.u2,1)+" ÷ "+n(q.m2,2)+" = "+n(f*100,0)+"%")+(f<1?"<br>Remaining: up to "+n(fl((1-f)*q.m1,1),1)+" ml of agent 1, or "+n(fl((1-f)*q.m2,1),1)+" ml of agent 2 (not both).":"<br>The limit is reached or exceeded"+(f>1?" by "+ovp(f):"")+".")}
+if(q.u1||q.u2){var f=Admix.fractionUsed(q.u1,q.u2,q.m1,q.m2);b+="<br>Used so far: "+n(q.u1,1)+" ml + "+n(q.u2,1)+" ml.<br>"+F("fraction used = "+n(q.u1,1)+" ÷ "+n(q.m1,2)+" + "+n(q.u2,1)+" ÷ "+n(q.m2,2)+" = "+n(f*100,0)+"%")+(f<1?"<br>Remaining: up to "+n(fl((1-f)*q.m1,1),1)+" ml of agent 1, or "+n(fl((1-f)*q.m2,1),1)+" ml of agent 2 (not both).":"<br>The limit is reached or exceeded"+(f>1?" by "+ovp(f):"")+".")}
 T("7. Dual agent",b)}
 else T("7. Dual agent","Not shown: two different agents with a safe dose remaining are needed.");
 /* 8 dilution */
 var ka=st.M[$("k1").value],kb=st.M[$("k2").value],V=+$("kv").value||0;
-if(ka&&kb&&ka.c>kb.c&&V>0){var hf=fl(V*kb.c/ka.c,1),df=Math.round((V-hf)*100)/100,ach=hf*ka.c/V/10;
+if(ka&&kb&&ka.c>kb.c&&V>0){var dn=Admix.dilution(ka,kb,V),hf=dn.hf,df=dn.df,ach=dn.ach;
 T("8. Dilution",F("volume of stock = final volume × desired mg/ml ÷ available mg/ml = "+n(V)+" × "+n(kb.c,2)+" ÷ "+n(ka.c,2)+" = "+n(V*kb.c/ka.c,2)+" ml → "+hf+" ml (rounded down)")+"<br>"+F("diluent = final volume − stock = "+n(V)+" − "+hf+" = "+df+" ml")+"<br>Resulting strength = "+hf+" × "+n(ka.c,2)+" ÷ "+n(V)+" = "+n(ach*10,2)+" mg/ml ("+n(ach,3)+"%), target "+n(kb.c/10,3)+"%.<br>Total drug in the final volume: "+n(V*kb.c,0)+" mg, compared with the patient’s limit for the desired agent of "+n(st.W*kb.k,0)+" mg.")}
 else T("8. Dilution","Not shown: choose an available and a lower desired concentration and a final volume.");
 /* 9 LAST */
@@ -443,7 +400,7 @@ var L=lastData(P.wt),as=L.as;
 T("9. Lipid rescue (LAST)","Guideline shown: "+(as?"ASRA":"AAGBI")+". These doses use the dosing weight ("+n(P.wt,1)+" kg), not the airway-scaled weight, because rescue must not be reduced.<br>"+F("bolus = weight × "+n(S.bolus,2)+" ml/kg = "+n(P.wt*S.bolus,0)+" ml"+(as&&P.wt>70?" → ASRA fixed bolus of 100 ml over 70 kg":as&&P.wt*S.bolus>100?" → capped at 100 ml (ASRA)":""))+"<br>"+F("infusion = weight × "+n(S.inf,2)+" ml/kg/h = "+n(L.inf,0)+" ml/h")+"<br>"+F("double infusion = infusion × "+n(S.mult,2)+" = "+n(L.dbl,0)+" ml/h")+"<br>"+F("maximum cumulative = weight × "+n(S.cap,2)+" ml/kg = "+n(L.cap,0)+" ml"));
 /* 10 alerts */
 b="";if(used>pool+0.5)b+="Airway lidocaine is over its maximum:<br>"+F("over by = (used ÷ pool − 1) × 100 = ("+n(used,1)+" ÷ "+n(pool,0)+" − 1) × 100 = "+ovp(used/pool))+"<br>";
-if(q&&(q.u1||q.u2)&&q.u1/q.m1+q.u2/q.m2>1)b+="The dual-agent fraction is above 100%:<br>"+F("over by = (fraction − 1) × 100 = "+ovp(q.u1/q.m1+q.u2/q.m2))+"<br>";
+if(q&&(q.u1||q.u2)&&Admix.fractionUsed(q.u1,q.u2,q.m1,q.m2)>1)b+="The dual-agent fraction is above 100%:<br>"+F("over by = (fraction − 1) × 100 = "+ovp(Admix.fractionUsed(q.u1,q.u2,q.m1,q.m2)))+"<br>";
 T("10. Warnings",b||"Nothing is over a maximum at the moment. If it is, the amount over appears here as: (amount used ÷ maximum − 1) × 100, and the plan box at the top turns red.");
 o.push('<li><b>Rounding</b>Volumes are rounded down to 0.1 ml and milligram doses down to whole numbers, so a displayed dose is never above the calculated limit. Numbers shown in this working are rounded for display only.</li>');
 el.innerHTML="<ol>"+o.join("")+"</ol>"}

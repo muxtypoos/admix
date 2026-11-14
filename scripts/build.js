@@ -166,11 +166,15 @@ function build(orgId, outRoot) {
   delete cfgForPage.last.images;
   const safeJSON = (o) => JSON.stringify(o).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 
+  // the calculation engine is inlined unchanged; it must not be able to break out of its script tag or hold tokens
+  const engine = read(path.join(ROOT, "src", "engine.js")).trim();
+  if (/@@|<\/script|<!--/i.test(engine)) throw new Error("src/engine.js must not contain '@@', '</script' or '<!--'");
   let html = read(path.join(ROOT, "src", "template.html"));
   const get = (p) => p.split(".").reduce((o, k) => (o == null ? o : o[k]), cfg);
   html = html.replace(/@@([A-Za-z0-9_.:-]+)@@/g, (m, key) => {
     if (key === "config-script") return `<script>var CFG=${safeJSON(cfgForPage)};var SK=CFG.storagePrefix;</script>`;
     if (key === "stamp") return esc(stamp);
+    if (key === "engine") return engine;
     if (key === "json:cen") return safeJSON(data("rcpch-bmi-centiles.json"));
     if (key === "json:cal") return safeJSON(data("rcpch-chart-calibration.json"));
     if (key.startsWith("img:")) {
