@@ -25,7 +25,8 @@ Every equation and rule that produces a dose is in `src/engine.js`: lean body we
 
 - **To audit:** read `src/engine.js` on its own (it is about 150 lines, each section headed by a comment). `tests/engine.js` lists fixed worked examples with answers that can be checked by hand.
 - **To change a formula:** edit `src/engine.js`, update the matching worked example in `tests/engine.js`, run `npm test`, and add a changelog line (a dosing change is a major version under SemVer).
-- **Safety net:** `tests/equivalence.js` runs random cases through the last pre-engine build (`tests/baseline/pre-engine-0.3.0-beta.html`) and the current build and requires identical output. If you change a formula on purpose it will report differences; replace the baseline with the new reference build when you accept them.
+- **Safety net:** `tests/engine.js` (worked examples checked by hand) and `tests/run.js` (the built page in a browser). `tests/equivalence.js` is no longer part of `npm test`: it compares against the pre-engine 0.3.0-beta build (`tests/baseline/`), whose baseline predates the removal of the 700 mg airway lidocaine cap, so it would report differences that are intended. Do not use it as a pass/fail check; it is kept only for reference.
+- **Bounds:** the engine clamps dose limits to 0 to 15 mg/kg (`KMAX`) and concentrations to above 0 up to 200 mg/ml (`CMAX`), and `scripts/build.js` rejects organisation configs outside the same ranges. Keep the three in step.
 - The build inserts the file into the page unchanged (token `@@engine@@`); it refuses an engine containing `@@`, `</script` or `<!--`.
 
 ## Everyday commands
@@ -56,7 +57,7 @@ Only list what differs from `src/config.base.json`. Objects merge; lists are rep
 | `removeAgents` | Ids to remove from the list |
 | `addAgents` | New agents: `{id, name, mgPerMl, maxMgPerKg, group, enabled}` (1% = 10 mg/ml) |
 | `agents` | Replace the whole agent list (use instead of the three above for a very different formulary) |
-| `last` | `enabled` (`["aagbi"]`, `["asra"]` or both), `default`, `captions`, `alt`, `images` (own guideline pictures, jpg/png under 900 KB) |
+| `last` | `enabled` (`["aagbi"]`, `["asra"]` or both), `default`, `captions`, `names`, `alt`, `images` (own guideline pictures, jpg/png under 900 KB). The key `aagbi` is historic and kept so stored choices and organisation configs keep working: it now shows the Association of Anaesthetists QRH 3-10 (2023) guideline, not the archived AAGBI 2010 one |
 | `text` | `proteinBinding`, `footer`, `defaultLimits`, `defaultLimitsShort`, `neonate`, `infant`, `airwayGuideline`, `disclaimer` (HTML allowed; config is reviewed code, not user input) |
 
 Agent `group` rules: agents only mix or dilute within the same group (`lP` lidocaine plain, `lA` lidocaine with adrenaline,

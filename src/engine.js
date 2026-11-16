@@ -27,16 +27,18 @@ function ageYears(v,unit,PM){v=+v;if(!(v>0))return 0;var u=PM?unit:"y";return v*
 
 /* ---------- 3. Patient: dosing weight ----------
    i = {w,h,age,male,PM,WM,S,CEN}: weight, height (m or cm), age in years, sex, paediatric mode, manual weight choice, settings, centile data. */
-function patient(i){var S=i.S,PM=i.PM,WM=i.WM,CEN=i.CEN,w=+i.w,h=+i.h,age=i.age;if(h>3)h=h/100;var hm=h>0?h:0;if(!(h>=(PM?0.05:0.25)))h=0;
+function patient(i){var S=i.S,PM=i.PM,WM=i.WM,CEN=i.CEN,w=+i.w,h=+i.h,age=i.age;if(h>3)h=h/100;var hbad=h>3,hm=h>0?h:0;if(!(h>=(PM?0.05:0.25)))h=0;
 var male=!!i.male,sx=male?"M":"F",bmi=w&&h?w/(h*h):0,lbw=bmi?lbwF(PM?S.lbwP:S.lbw,w,h,male,bmi):0,T=S.bmi,bw=5,wt=w,mode="TBW",tbwOnly=false,band="",cc=null;
 if(PM){if(bmi&&age>=2&&age<=20){T=cen(CEN,sx,S.pc,age);bw=T*0.1;cc={c91:cen(CEN,sx,"c91",age),c98:cen(CEN,sx,"c98",age),c996:cen(CEN,sx,"c996",age)};band=bmi>=cc.c996?"severely obese (\u226599.6th)":bmi>=cc.c98?"obese (\u226598th)":bmi>=cc.c91?"overweight (\u226591st)":"below 91st centile"}else{tbwOnly=true;T=1e9}}
 if(WM=="lbw"&&lbw>0){wt=lbw;mode="LBW (manual)"}else if(WM=="tbw"){mode=bmi>=T?"TBW (manual)":"TBW"}
 else if(bmi>=T){if(S.hold){wt=Math.min(w,T*h*h);mode="Held at BMI threshold weight"}else if(S.blend&&bmi<T+bw){wt=w+(lbw-w)*((bmi-T)/bw);mode="Adjusted (TBW\u2192LBW)"}else{wt=lbw;mode="LBW"}}
-return{neo:PM&&age>0&&age<=0.2501,w:w,h:h,bmi:bmi,lbw:lbw,wt:wt,mode:mode,ok:w>0&&w<=300,noh:!h,hm:hm,tbwOnly:tbwOnly,thr:(PM&&!tbwOnly)?T:0,band:band,cc:cc,age:age,sx:sx}}
+return{neo:PM&&age>0&&age<=0.2501,w:w,h:h,bmi:bmi,lbw:lbw,wt:wt,mode:mode,ok:w>0&&w<=300&&!hbad,hbad:hbad,noh:!h,hm:hm,tbwOnly:tbwOnly,thr:(PM&&!tbwOnly)?T:0,band:band,cc:cc,age:age,sx:sx}}
 
 /* ---------- 4. Agent list with limits (neonatal reduction, prilocaine lock-out, expert overrides, custom agents) ---------- */
-function agents(BASE,OVR,cu,S,NEO,raw){var f=(NEO&&!raw)?1-Math.min(90,Math.max(0,S.neoRed||0))/100:1,fin=function(v){return typeof v==="number"&&isFinite(v)};
-return BASE.map(function(b){var o=OVR[b[0]]||{},k=fin(o.k)&&o.k>=0?o.k:b[3],on=o.on!=null?!!o.on:!!b[5];if(NEO&&!raw&&b[4]=="pr")on=false;return{id:b[0],name:b[1],c:b[2],k:k*f,g:b[4],on:on}}).concat(cu.map(function(c){var inv=!(fin(c.c)&&c.c>0)||!(fin(c.k)&&c.k>=0);return{id:String(c.id),name:String(c.name||"Custom"),c:raw?c.c:(inv?10:c.c),k:(fin(c.k)&&c.k>=0?c.k:0)*(raw?1:f),g:String(c.id),on:!inv&&c.on!==false,cu:1,inv:inv}}))}
+/* Limits enforced here (single source of truth, also used by the settings screen and the builder): mg/kg 0 to KMAX, concentration above 0 up to CMAX mg/ml (20%). Out-of-range values are clamped, never used as entered. */
+var KMAX=15,CMAX=200;
+function agents(BASE,OVR,cu,S,NEO,raw){var f=(NEO&&!raw)?1-Math.min(90,Math.max(0,S.neoRed||0))/100:1,fin=function(v){return typeof v==="number"&&isFinite(v)},cl=function(v,m){return Math.min(m,Math.max(0,v))};
+return BASE.map(function(b){var o=OVR[b[0]]||{},k=fin(o.k)&&o.k>=0?cl(o.k,KMAX):b[3],on=o.on!=null?!!o.on:!!b[5];if(NEO&&!raw&&b[4]=="pr")on=false;return{id:b[0],name:b[1],c:b[2],k:k*f,g:b[4],on:on}}).concat(cu.map(function(c){var inv=!(fin(c.c)&&c.c>0)||!(fin(c.k)&&c.k>=0),cc=fin(c.c)?Math.min(CMAX,c.c):c.c,kk=fin(c.k)&&c.k>=0?cl(c.k,KMAX):0;return{id:String(c.id),name:String(c.name||"Custom"),c:raw?cc:(inv?10:cc),k:kk*(raw?1:f),g:String(c.id),on:!inv&&c.on!==false,cu:1,inv:inv}}))}
 
 /* ---------- 5. Airway lidocaine: free-text parser ---------- */
 function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return m[a.length][b.length]}
@@ -44,43 +46,47 @@ var DL=["lidocaine","lignocaine","lidocain","lignocain","xylocaine","xylocain","
 function isL(s){return (s.match(/[a-z]{4,}/g)||[]).some(function(w){return /^(lido|lidc|ligno|lignc|xylo|xyl[oi]c)/.test(w)||DL.some(function(d){return lev(w,d)<=2})})}
 function isC(s){return /co[\s\-]?ph|cophen|phenylc|phenylk|co[\s\-]?fen|cofen/.test(s)||(s.match(/[a-z]{7,}/g)||[]).some(function(w){return lev(w,"cophenylcaine")<=3})}
 var NW={zero:0,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20,thirty:30,forty:40,fifty:50,half:0.5,one:1};
-function prep(t){t=String(t||"");t=t.replace(/(\d),(\d{3})(?!\d)/g,"$1$2").replace(/(\d),(\d{1,2})(?!\d)/g,"$1.$2").replace(/per\s+cent/gi,"percent");return t.replace(/\b(zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|half|one(?!\s+(?:nostril|side)))\b/gi,function(m){return NW[m.toLowerCase()]})}
+/* A comma always separates items (it is never read as a decimal point); only a thousands comma (1,000) is removed. */
+function prep(t){t=String(t||"");t=t.replace(/(\d),(\d{3})(?!\d)/g,"$1$2").replace(/per\s+cent/gi,"percent");return t.replace(/\b(zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|half|one(?!\s+(?:nostril|side)))\b/gi,function(m){return NW[m.toLowerCase()]})}
 function unit(t){if(!t)return"";if(/^(ml|mls|cc|ccs|mil+i?l?i?t.*)$/.test(t)||/^millil/.test(t)||t=="lm"||(t.length>=2&&t.length<=3&&!/^(mg|mgs|no|in|on|of|at|to|or|and)$/.test(t)&&lev(t,"ml")<=1))return"ml";if(/^(mg|mgs|milligrams?|mgm)$/.test(t))return"mg";if(/^(g|gm|gms|grams?|grammes?)$/.test(t))return"g";if(t=="%"||t=="percent"||t=="pc")return"pct";if(/^spr/.test(t)||(t.length>=4&&(lev(t,"sprays")<=2||lev(t,"squirts")<=2||lev(t,"puffs")<=1||lev(t,"pumps")<=1||lev(t,"actuations")<=2)))return"sp";return""}
 function segParse(raw,S){var s=prep(raw).toLowerCase().replace(/×/g,"x").replace(/(\d)([a-z%])/g,"$1 $2").replace(/([a-z%])(\d)/g,"$1 $2"),C=isC(s),L=isL(s)||C;if(!L)return{skip:raw.trim()};
+if(/\b(mg|ml)\s*(\/|\\|per\b|\.)\s*kg|\b(mg|ml)\s+kg\b|\bper\s*kg\b/.test(s))return{label:raw.trim(),mg:0,fl:["dose given per kg: not counted, enter the total mg"],bad:1};
 var tk=s.match(/\d+(?:\.\d+)?|[a-z]+|%/g)||[],ml=null,mg=null,pct=null,sp=null,cn=null,fl=[],xm=1,dup=0;
-tk.forEach(function(t,i){if(t!="x")return;var a=tk[i+1],b=tk[i-1];if(/^\d/.test(a||"")&&!unit(tk[i+2]))xm=+a;else if(/^\d/.test(b||"")&&/^\d/.test(a||""))xm=+b});
-tk.forEach(function(t,i){if(!/^\d/.test(t))return;var n=+t,u=unit(tk[i+1]),nx=tk.slice(i+1,i+4).join(" ");if((u=="ml"&&ml!=null)||(u=="pct"&&pct!=null)||(u=="mg"&&mg!=null&&tk[i+2]!="ml"))dup=1;if(u=="ml"&&ml==null)ml=n;else if(u=="mg"&&tk[i+2]=="ml"&&cn==null)cn=n;else if(u=="mg"&&mg==null)mg=n;else if(u=="g"&&mg==null)mg=n*1000;else if(u=="pct"&&pct==null)pct=n;else if(u=="sp"&&sp==null)sp=n;else if(!u&&tk[i-1]=="x"&&sp==null&&xm==1)sp=n;else if(!u&&/(per|each|every)\s+(nostril|side)/.test(nx)&&sp==null)sp=n});
+var xw=0,xc=0,nx0=0,isN=function(t){return !!t&&(/^(nostrils?|sides?)$/.test(t)||(t.length>=6&&lev(t,"nostril")<=2))},sx=function(n,w){if(n>1){xc++;xm*=n;if(w)xw=1}};
+tk.forEach(function(t,i){var a=tk[i+1],b=tk[i-1];if(t=="x"){if(/^\d/.test(a||"")&&isN(tk[i+2]))nx0=+a;else if(/^\d/.test(a||"")&&!unit(tk[i+2]))sx(+a);else if(/^\d/.test(b||"")&&/^\d/.test(a||""))sx(+b)}
+else if(t=="twice"||(t.length>=4&&lev(t,"twice")<=1))sx(2,1);else if(t=="thrice"||(t.length>=5&&lev(t,"thrice")<=1))sx(3,1);else if(t=="times"||t=="time"){if(/^\d/.test(b||""))sx(+b,1);else if(/^\d/.test(a||""))sx(+a,1)}});
+tk.forEach(function(t,i){if(!/^\d/.test(t))return;var n=+t,u=unit(tk[i+1]),nx=tk.slice(i+1,i+4).join(" ");if((u=="ml"&&ml!=null)||(u=="pct"&&pct!=null)||(u=="mg"&&mg!=null&&tk[i+2]!="ml"))dup=1;if(u=="ml"&&ml==null)ml=n;else if(u=="mg"&&tk[i+2]=="ml"&&cn==null)cn=n;else if(u=="mg"&&mg==null)mg=n;else if(u=="g"&&mg==null)mg=n*1000;else if(u=="pct"&&pct==null)pct=n;else if(u=="sp"&&sp==null)sp=n;else if(!u&&tk[i-1]=="x"&&sp==null&&xm==1&&!isN(tk[i+1]))sp=n;else if(!u&&/(per|each|every)\s+(nostril|side)/.test(nx)&&sp==null)sp=n});
 if(cn!=null&&pct==null)pct=cn/10;
-if(sp==null&&ml==null&&mg==null&&xm>1&&(C||pct==10||/xylo/.test(s))){sp=xm;xm=1}
+if(sp==null&&ml==null&&mg==null&&xm>1&&!xw&&(C||pct==10||/xylo/.test(s))){sp=xm;xm=1}
 var mult=1,wd=s.match(/[a-z]+/g)||[],nI=[];wd.forEach(function(w,i){if((w.length>=4&&(lev(w,"nostril")<=2||lev(w,"nostrils")<=2))||/^sides?$/.test(w))nI.push(i)});
 var bi=wd.some(function(w){return /^bilat/.test(w)||(w.length>=6&&lev(w,"bilateral")<=2)}),each=wd.some(function(w,i){return nI.some(function(j){return Math.abs(i-j)<=2&&i!=j&&(/^(per|each|every|both|bd|bds)$/.test(w)||(w.length>=4&&(lev(w,"each")<=2||lev(w,"both")<=1||lev(w,"every")<=1)))})});
-if(bi||each)mult=2;var uni=/unilateral|\b(one|1|single|left|right|lt|rt)\s+(nostril|side)/.test(s)||wd.some(function(w){return w.length>=7&&lev(w,"unilateral")<=2});
+if(bi||each)mult=2;if(nx0>=2)mult=nx0;var uni=nx0==1||/unilateral|\b(one|1|single|left|right|lt|rt)\s+(nostril|side)/.test(s)||wd.some(function(w){return w.length>=7&&lev(w,"unilateral")<=2});
 var label=raw.trim(),out=0,xs=function(){return xm>1?" × "+xm:""};
 if(C){var per=pct||S.cpMg;if(pct&&pct!=5)fl.push("concentration "+pct+"% used");
-if(sp!=null){out=sp*mult*per;label="Co-phenylcaine: "+sp+" spray"+(sp==1?"":"s")+(mult==2?" × 2 nostrils":"")+" × "+per+" mg";if(mult==1&&!uni)fl.push("nostril count not stated: counted as TOTAL sprays (double it if per nostril)")}
+if(sp!=null){out=sp*mult*xm*per;label="Co-phenylcaine: "+sp+" spray"+(sp==1?"":"s")+(mult>1?" × "+mult+" nostrils":"")+" × "+per+" mg"+xs();if(mult==1&&!uni)fl.push("nostril count not stated: counted as TOTAL sprays (double it if per nostril)")}
 else if(ml!=null){out=ml*50*xm;label="Co-phenylcaine "+ml+" ml × 50 mg/ml (5%)"+xs()}
 else if(mg!=null){out=mg*xm;label="Co-phenylcaine "+mg+" mg lidocaine"+xs()}
-else{out=S.cpN*per;label="Co-phenylcaine (amount unstated)";fl.push("assumed "+S.cpN+" sprays total (5 per nostril)")}}
+else{out=S.cpN*per*xm;label="Co-phenylcaine (amount unstated)"+xs();fl.push("assumed "+S.cpN+" sprays total (5 per nostril)")}}
 else{if(ml!=null&&pct!=null){out=ml*pct*10*xm;label="Lidocaine "+ml+" ml × "+pct+"%"+xs()}
-else if(sp!=null){var ps=pct==10||pct==null?10:pct;out=sp*mult*ps;label="Lidocaine "+sp*mult+" sprays × "+ps+" mg";if(pct==null)fl.push("assumed 10% pump spray (10 mg/spray)");else if(pct!=10)fl.push("assumed 0.1 ml per spray")}
+else if(sp!=null){var ps=pct==10||pct==null?10:pct;out=sp*mult*xm*ps;label="Lidocaine "+sp*mult+" sprays × "+ps+" mg"+xs();if(pct==null)fl.push("assumed 10% pump spray (10 mg/spray)");else if(pct!=10)fl.push("assumed 0.1 ml per spray")}
 else if(mg!=null){out=mg*xm;label="Lidocaine "+mg+" mg"+xs()}
 else if(ml!=null){fl.push("concentration missing: not counted");label="Lidocaine "+ml+" ml (no %)";return{label:label,mg:0,fl:fl,bad:1}}
 else{fl.push("no quantity found: not counted");return{label:label,mg:0,fl:fl,bad:1}}}
 if(out>3000)fl.push("implausibly large (over 3000 mg): check units");
-var warn=0;if(dup){fl.push("more than one amount in this entry: only the first was counted. Separate items with commas.");warn=1}
+var warn=0;if(xc>1){fl.push("more than one repeat multiplier in this entry (e.g. x 2 and twice): multiplied together, check");warn=1}if(dup){fl.push("more than one amount in this entry: only the first was counted. Separate items with commas.");warn=1}
 if(!C&&pct!=null&&mg!=null&&ml==null&&sp==null&&cn==null){fl.push('"mg" given with a % concentration: did you mean ml? Counted as mg.');warn=1}
 return{label:label,mg:out,fl:fl,bad:warn}}
 var OTH=/bupi|levobup|ropiv|prilo|chloroproc|mepiv|articain|tetracain|cocain|phenyleph|adrenal|epineph|ephedr|emla|ketamin|propofol|fentan|morphin|dexmed|clonid|midazol|atropin|glycopyrr/;
 /* Parses the airway text into items (label, mg, flags), skipped entries, other drugs ignored, and the total mg. */
 function parseAirway(raw,S){var t=prep(raw),items=[],sk=[],ot=[],last=null;
 t.split(/[,;\n+&]|\band\b|\bthen\b|\bplus\b|\bfollowed by\b/i).forEach(function(x){var s0=x.trim();if(!s0)return;var r=segParse(s0,S);
-if(r.skip){if(OTH.test(s0.toLowerCase())){ot.push(s0);return}if(/\d/.test(s0)&&last&&!last.C){if(last.r.bad){items.pop();var tx=last.text+" "+s0;r=segParse(tx,S);items.push(r);last={text:tx,r:r,C:last.C};return}
+if(r.skip){if(OTH.test(s0.toLowerCase())){ot.push(s0);return}if(/\d/.test(s0)&&last&&!last.C){if(last.r.bad){items.pop();var tx=last.text+" "+s0;r=segParse(tx,S);r.fl=r.fl.concat(["joined with the previous entry across a comma: check the amounts (a comma separates items, it is not a decimal point)"]);r.bad=1;items.push(r);last={text:tx,r:r,C:last.C};return}
 var r2=segParse("lidocaine "+s0,S);if(!r2.skip&&!r2.bad){r2.fl=r2.fl.concat(["drug name not stated: assumed lidocaine"]);items.push(r2);last={text:"lidocaine "+s0,r:r2,C:false};return}}
 sk.push(s0);return}
 items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
 var tot=0;items.forEach(function(r){tot+=r.mg});return{items:items,sk:sk,ot:ot,tot:tot}}
 
-/* Airway lidocaine pool: pool = LBW (or TBW if no height) x mg/kg, capped; fr = fraction left; W = weight used for all other doses. */
+/* Airway lidocaine pool: pool = LBW (or TBW if no height) x mg/kg (no absolute cap); fr = fraction left; W = weight used for all other doses. */
 function airwayPool(P,S,used){var pb=P.lbw||P.w,pool=pb?pb*S.lidoCap:0,fr=pool?Math.max(0,(pool-used)/pool):1;return{pb:pb,pool:pool,fr:fr,W:P.wt*fr}}
 
 /* ---------- 6. Single agent, pairs, dilution ---------- */
@@ -100,11 +106,16 @@ function overText(r){var x=(r-1)*100;return(x>0&&x<0.5?"<1":Math.round(x))+"%"}
 /* Dilution: ml of stock a to make V ml of weaker agent b (mg/ml c), rounded down to 0.1 ml; resulting strength in %; total drug mg */
 function dilution(a,b,V){var hf=fl(V*b.c/a.c,1);return{hf:hf,df:Math.round((V-hf)*100)/100,ach:hf*a.c/V/10,tg:b.c/10,total:V*b.c}}
 
-/* ---------- 7. Lipid rescue (LAST): mode "aagbi" or "asra"; weight w; settings S ---------- */
-function lastDoses(w,S,mode){var R=Math.round,as=mode=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf)};o.b=over?100:as?Math.min(100,R(w*S.bolus)):R(w*S.bolus);return o}
+/* ---------- 7. Lipid rescue (LAST): mode "aagbi" (Association of Anaesthetists QRH 3-10, the stored key is historic) or "asra"; weight w; settings S ---------- */
+function lastDoses(w,S,mode){var R=Math.round,as=mode=="asra",over=as&&w>70,o={as:as,over:over,cap:R(w*S.cap),dbl:R(w*S.inf*S.mult),inf:R(w*S.inf),mn:R(w*S.inf/60*10)/10,dmn:R(w*S.inf*S.mult/60*10)/10};o.b=over?100:as?Math.min(100,R(w*S.bolus)):R(w*S.bolus);return o}
+/* Weight for lipid doses: lean body weight when the dosing weight was held at the BMI threshold weight (that is not a lean weight); otherwise the dosing weight (TBW, adjusted, LBW or manual). */
+var HELD="Held at BMI threshold weight";
+function lipidWeight(P){return P.mode===HELD&&P.lbw>0?P.lbw:P.wt}
+/* Plain-words basis of the lipid weight, for the footnote and the working */
+function lipidBasis(P){var m=String(P.mode);if(m===HELD&&P.lbw>0)return"lean body weight";if(m.indexOf("LBW")==0)return"lean body weight";if(m.indexOf("Adjusted")==0)return"adjusted weight (between total and lean body weight)";return"total body weight"}
 
 return{fl:fl,lbwRaw:lbwRaw,lbwF:lbwF,cen:cen,ageYears:ageYears,patient:patient,agents:agents,parseAirway:parseAirway,airwayPool:airwayPool,
 maxMlRaw:maxMlRaw,maxDose:maxDose,pairLimits:pairLimits,fractionUsed:fractionUsed,chartFromVolume:chartFromVolume,chartFromRow:chartFromRow,chartFraction:chartFraction,
-overText:overText,dilution:dilution,lastDoses:lastDoses}
+overText:overText,dilution:dilution,lastDoses:lastDoses,lipidWeight:lipidWeight,lipidBasis:lipidBasis,KMAX:KMAX,CMAX:CMAX}
 })();
 if(typeof module!=="undefined"&&module.exports)module.exports=Admix;

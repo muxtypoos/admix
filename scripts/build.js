@@ -105,8 +105,9 @@ function validate(cfg) {
     if (ids.has(a.id)) bad(`${w}: duplicate id`);
     ids.add(a.id);
     if (!a.name) bad(`${w}: name is required`);
-    if (!(typeof a.mgPerMl === "number" && a.mgPerMl > 0)) bad(`${w}: mgPerMl must be a number above 0 (e.g. 1% = 10)`);
-    if (!(typeof a.maxMgPerKg === "number" && a.maxMgPerKg >= 0)) bad(`${w}: maxMgPerKg must be a number, 0 or more`);
+    // limits keep in sync with KMAX / CMAX in src/engine.js (the app clamps to them)
+    if (!(typeof a.mgPerMl === "number" && a.mgPerMl > 0 && a.mgPerMl <= 200)) bad(`${w}: mgPerMl must be a number above 0 and at most 200 (e.g. 1% = 10)`);
+    if (!(typeof a.maxMgPerKg === "number" && a.maxMgPerKg >= 0 && a.maxMgPerKg <= 15)) bad(`${w}: maxMgPerKg must be a number from 0 to 15`);
     if (!a.group || typeof a.group !== "string") bad(`${w}: group is required (agents mix/dilute only within the same group; "pr" is locked out in neonates)`);
     if (typeof a.enabled !== "boolean") bad(`${w}: enabled must be true or false`);
   }
@@ -118,6 +119,7 @@ function validate(cfg) {
   for (const g of LAST_GUIDELINES) {
     if (!L.captions[g]) bad(`last.captions.${g} is required`);
     if (!L.alt[g]) bad(`last.alt.${g} is required`);
+    if (!L.names || !L.names[g]) bad(`last.names.${g} is required`);
   }
   for (const k of ["proteinBinding", "footer", "defaultLimits", "defaultLimitsShort", "neonate", "infant", "airwayGuideline", "disclaimer"])
     if (typeof cfg.text[k] !== "string" || !cfg.text[k].trim()) bad(`text.${k} is required`);

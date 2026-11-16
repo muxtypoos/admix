@@ -113,7 +113,7 @@ async function coreTests(browser, org, cfg) {
   await setPt(p, 80, 1.75, "Male");
   const lr = await ev(() => $("lr").textContent);
   if (cfg.last.default === "asra") ok(T("ASRA bolus capped at 100 ml"), /BOLUS\s*100\s*ml/.test(lr), lr.slice(0, 120));
-  if (cfg.last.default === "aagbi") ok(T("AAGBI bolus 1.5 ml/kg"), /BOLUS NOW\s*120/.test(lr), lr.slice(0, 120));
+  if (cfg.last.default === "aagbi") ok(T("UK (Association of Anaesthetists QRH) bolus 1.5 ml/kg"), /BOLUS NOW\s*120/.test(lr), lr.slice(0, 120));
   await ev(() => { $("imA").style.width = "100%"; });
   await p.click(cfg.last.default === "asra" ? "#imS" : "#imA");
   ok(T("LAST image tap-to-zoom works"), (await ev(() => (LM === "asra" ? $("imS") : $("imA")).style.width)) === "220%" && p.errs.length === 0, p.errs);
@@ -131,6 +131,7 @@ async function coreTests(browser, org, cfg) {
   ok(T("no popup weight 280"), !(await pop("w", 280)));
   ok(T("popup height 2.6 m"), await pop("h", 2.6));
   ok(T("popup height 260 cm"), await pop("h", 260));
+  ok(T("popup height 301 cm"), await pop("h", 301));
   ok(T("no popup height 180"), !(await pop("h", 180)));
   ok(T("popup age 121"), await pop("age", 121));
   ok(T("no popup age 45"), !(await pop("age", 45)));
@@ -196,6 +197,157 @@ async function coreTests(browser, org, cfg) {
   await p.close();
 }
 
+
+/* ---------- reload persistence, limit bounds, settings-changed badge, lipid guards, height limit ---------- */
+async function safetyTests(browser, org, cfg) {
+  const p = await open(browser, org);
+  const T = (n) => `[${org}] ${n}`;
+  const ev = (f, a) => p.evaluate(f, a);
+  const key = (k) => cfg.storagePrefix + k;
+  const shown = (id) => ev((id) => getComputedStyle(document.getElementById(id)).display !== "none", id);
+  const fire = (sel, v, type) => ev(([sel, v, type]) => { const i = document.querySelector(sel); if (v !== null) i.value = v; i.dispatchEvent(new Event(type, { bubbles: true })); }, [sel, v, type]);
+
+  // ---- item 1: reload keeps the airway reduction, used volumes and agents; notice shown only when restored
+  ok(T("fresh start: no restored-patient notice"), !(await shown("restored")));
+  await setPt(p, 80, 180, "Male");
+  await p.fill("#at", "5 ml 4% lidocaine, 10 sprays 10% lidocaine");
+  const ids = await ev(() => st.en.map((a) => a.id));
+  await ev((ids) => { $("d1").value = ids[2]; $("d2").value = ids[0]; $("u1").value = 3; $("u2").value = 5; calc(); }, ids);
+  const before = await ev(() => ({ used: st.used, W: st.W, ml: st.en.map((a) => Admix.maxDose(st.W, a).ml) }));
+  ok(T("airway text counted before reload (300 mg, weight reduced)"), before.used === 300 && before.W < 80, before);
+  await p.reload();
+  const after = await ev(() => ({ used: st.used, W: st.W, ml: st.en.map((a) => Admix.maxDose(st.W, a).ml), at: $("at").value, u1: $("u1").value, u2: $("u2").value, d1: $("d1").value, d2: $("d2").value, usedOpen: $("used").open }));
+  ok(T("reload: airway text restored"), after.at === "5 ml 4% lidocaine, 10 sprays 10% lidocaine", after.at);
+  ok(T("reload: maximum doses unchanged for every agent"), JSON.stringify(after.ml) === JSON.stringify(before.ml) && after.used === 300 && after.W === before.W, [before, after]);
+  ok(T("reload: used volumes and agents restored (hidden section still counted, and opened)"), after.u1 === "3" && after.u2 === "5" && after.d1 === ids[2] && after.d2 === ids[0] && after.usedOpen === true, after);
+  ok(T("reload: used-so-far volumes reach the dual-agent plan"), await ev(() => st.dual && st.dual.u1 === 3 && st.dual.u2 === 5));
+  ok(T("reload: restored-patient notice is shown"), (await shown("restored")) && /previous patient/.test(await ev(() => $("restored").textContent)));
+  await p.click("#rsx");
+  ok(T("notice can be dismissed"), !(await shown("restored")));
+  await p.reload();
+  ok(T("notice returns on the next reload while a patient is saved"), await shown("restored"));
+  await p.click("#newpt");
+  ok(T("New patient hides the notice"), !(await shown("restored")));
+  ok(T("New patient clears weight, airway text, manual airway mg and used volumes"), await ev(() => ["w", "h", "age", "at", "am", "u1", "u2"].every((i) => $(i).value === "") && st.used === 0));
+  ok(T("New patient leaves nothing to restore"), await ev((k) => { try { const v = JSON.parse(localStorage.getItem(k) || "{}"); return !v.w && !v.at && !v.am && !v.u1 && !v.u2; } catch (e) { return false; } }, key("Pt")));
+  await p.reload();
+  ok(T("after New patient and reload: no notice, nothing restored"), !(await shown("restored")) && (await ev(() => $("at").value === "" && $("w").value === "" && st.used === 0)));
+
+  // ---- item 2: limit bounds, field shows the value used, settings-changed badge
+  await ev(() => { document.querySelectorAll("details").forEach((d) => (d.open = true)); document.querySelectorAll(".cl").forEach((c) => c.classList.remove("col")); });
+  await setPt(p, 70, 1.75, "Male");
+  ok(T("badge hidden with the organisation defaults"), !(await shown("chg")));
+  const a0 = await ev(() => st.en[0].id);
+  await ev(() => ov(1));
+  const ksel = `#sg [data-a=k][data-id=${a0}]`;
+  await fire(ksel, "30", "input");
+  ok(T("override 30 mg/kg is used as 15 while typing"), (await ev((id) => A().find((a) => a.id === id).k, a0)) === 15);
+  await fire(ksel, null, "change");
+  ok(T("override 30 mg/kg: field shows 15 after change"), (await ev((s) => document.querySelector(s).value, ksel)) === "15");
+  ok(T("override stored as 15"), (await ev((k) => JSON.parse(localStorage.getItem(k)), key("Ov")))[a0].k === 15);
+  ok(T("main screen shows the settings-changed badge"), (await shown("chg")) && /Settings changed from this organisation/.test(await ev(() => $("chg").textContent)));
+  await p.evaluate(() => { window.__cp = null; Object.defineProperty(navigator, "clipboard", { value: { writeText: (t) => { window.__cp = t; return Promise.resolve(); } }, configurable: true }); window.alert = () => {}; });
+  await ev(() => copySummary());
+  const sum = await ev(() => window.__cp);
+  ok(T("copied summary carries the settings-changed line"), /SETTINGS CHANGED from this organisation/.test(sum), sum);
+  ok(T("copied summary names the lipid guideline and weight basis"), /Association of Anaesthetists QRH 3-10 \(2023\); total body weight 70 kg/.test(sum) || cfg.last.default === "asra" || /ASRA/.test(sum), sum);
+  await ev(() => printPrep());
+  ok(T("print header line carries the settings-changed note"), /SETTINGS CHANGED/.test(await ev(() => $("pd").textContent)));
+  await fire(ksel, "0", "input"); await fire(ksel, null, "change");
+  ok(T("override 0 is allowed"), (await ev((id) => A().find((a) => a.id === id).k, a0)) === 0);
+  await p.click("#rst");
+  ok(T("Reset removes the badge"), !(await shown("chg")));
+  ok(T("Reset restores the default limit"), (await ev((id) => A().find((a) => a.id === id).k, a0)) === cfg.agents.find((a) => a.id === a0).maxMgPerKg);
+  await fire("#sg [data-f=bmi]", "200", "input"); await fire("#sg [data-f=bmi]", null, "change");
+  ok(T("BMI threshold 200: field shows the clamped 60 and the app uses 60"), (await ev(() => document.querySelector("#sg [data-f=bmi]").value)) === "60" && (await ev(() => S.bmi)) === 60);
+  ok(T("a changed default also raises the badge"), await shown("chg"));
+  await fire("#sg [data-f=bmi]", "", "input"); await fire("#sg [data-f=bmi]", null, "change");
+  ok(T("emptied field shows the value in use"), (await ev(() => document.querySelector("#sg [data-f=bmi]").value)) === "60");
+  await p.click("#rst");
+  await p.click("#addc");
+  ok(T("a custom agent raises the badge"), await shown("chg"));
+  await fire("#sg [data-a=pct]", "500", "input"); await fire("#sg [data-a=pct]", null, "change");
+  ok(T("custom 500% is clamped to 20% (200 mg/ml) in the field and the engine"), (await ev(() => document.querySelector("#sg [data-a=pct]").value)) === "20" && (await ev(() => A().find((a) => a.cu).c)) === 200);
+  await fire("#sg [data-a=k][data-id^=cu]", "30", "input"); await fire("#sg [data-a=k][data-id^=cu]", null, "change");
+  ok(T("custom 30 mg/kg is clamped to 15"), (await ev(() => A().find((a) => a.cu).k)) === 15 && (await ev(() => document.querySelector("#sg [data-a=k][data-id^=cu]").value)) === "15");
+  await p.click("#rst");
+  // out-of-range values already in storage are clamped on load
+  await ev(([k1, k2, id]) => { localStorage.setItem(k1, JSON.stringify({ [id]: { k: 30 } })); localStorage.setItem(k2, JSON.stringify([{ id: "cuX", name: "X", c: 500, k: 40, on: true }])); }, [key("Ov"), key("Cu"), a0]);
+  await p.reload();
+  ok(T("load clamps stored out-of-range limits"), await ev((id) => A(1).find((a) => a.id === id).k === 15 && A(1).find((a) => a.id === "cuX").c === 200 && A(1).find((a) => a.id === "cuX").k === 15, a0));
+  ok(T("badge shows after load with stored overrides"), await shown("chg"));
+  await ev(() => ov(1)); await p.click("#rst"); await ev(() => ov(0));
+  ok(T("badge gone after Reset"), !(await shown("chg")));
+
+  // ---- items 4/7/8: lipid panel
+  await ev(() => { document.querySelectorAll("details").forEach((d) => (d.open = true)); document.querySelectorAll(".cl").forEach((c) => c.classList.remove("col")); });
+  for (const mode of ["aagbi", "asra"]) {
+    for (const w of ["-70", "0", "", "320"]) {
+      await ev((m) => { LM = m; }, mode);
+      await setPt(p, w, 1.75, "Male");
+      const lt = await ev(() => document.querySelectorAll("#lr .lt").length), txt = await ev(() => $("lr").textContent);
+      ok(T(`lipid (${mode}) shows no doses for weight '${w}'`), lt === 0 && !/\d+\s*ml|BOLUS/.test(txt) && (await ev(() => document.querySelectorAll("#lr .alert").length)) === 1, txt);
+    }
+  }
+  await ev(() => { LM = "aagbi"; }); await setPt(p, -70, 1.75, "Male");
+  ok(T("lipid -70: asks for the weight"), /Enter the patient.s weight to calculate lipid doses/.test(await ev(() => $("lr").textContent)));
+  await setPt(p, 320, 1.75, "Male");
+  ok(T("lipid 320: says the weight is implausible"), /implausible/.test(await ev(() => $("lr").textContent)));
+  await setPt(p, 70, 301, "Male");
+  ok(T("lipid with height 301: no doses"), (await ev(() => document.querySelectorAll("#lr .lt").length)) === 0 && /implausible/.test(await ev(() => $("lr").textContent)));
+
+  // UK option text follows the Association of Anaesthetists QRH 3-10 Box A
+  await ev(() => { LM = "aagbi"; }); await setPt(p, 70, 1.75, "Male");
+  const uk = await ev(() => $("lr").textContent);
+  for (const t of ["BOLUS NOW", "105", "over 2\u20133 min", "AT 5 AND 10 MIN, IF STILL UNSTABLE", "REPEAT BOLUS", "ANY TIME AFTER 5 MIN", "DOUBLE INFUSION RATE", "17.5 ml/min", "35 ml/min", "1050", "2100", "MAXIMUM CUMULATIVE DOSE 840 ml", "20% Intralipid", "vasopressin", "1 hour", "70 mcg"])
+    ok(T("UK lipid text contains: " + t), uk.includes(t), uk.slice(0, 400));
+  ok(T("UK lipid text no longer says over 1 min or AAGBI"), !/over 1 min|AAGBI/.test(uk));
+  ok(T("UK lipid footnote: total body weight, no ASRA attribution"), /total body weight \(70 kg\)/.test(uk) && !/ASRA/.test(uk), uk.slice(-300));
+  ok(T("UK image caption carries the licence"), /Association of Anaesthetists 2023, www\.anaesthetists\.org\/qrh, CC BY-NC-SA 4\.0/.test(await ev(() => $("lcap").textContent)));
+  ok(T("UK image is the QRH page (embedded jpeg)"), await ev(() => $("imA").src.startsWith("data:image/jpeg") && /Association of Anaesthetists QRH/.test($("imA").alt)));
+  ok(T("toggle label names the QRH"), /QRH/.test(await ev(() => $("lsA").textContent)) && !/AAGBI/.test(await ev(() => document.body.innerText)));
+
+  // lean weight for lipid with the hold option (and the footnote says so truthfully)
+  await ev(() => { S.hold = true; }); await setPt(p, 120, 1.7, "Male");
+  const lw = await ev(() => Math.round(st.P.lbw * 12)), heldCap = await ev(() => Math.round(st.P.wt * 12));
+  const ukH = await ev(() => $("lr").textContent);
+  ok(T("hold: lipid maximum uses lean weight, not the held weight"), ukH.includes("MAXIMUM CUMULATIVE DOSE " + lw + " ml") && lw !== heldCap, [lw, heldCap, ukH.slice(0, 300)]);
+  ok(T("hold: footnote says lean body weight and that the held weight is not lean"), /lean body weight/.test(ukH) && /not lean weight/.test(ukH));
+  ok(T("hold + UK option: lean weight is not attributed to the QRH"), !/ASRA/.test(ukH) && /QRH does not state/.test(ukH));
+  await ev(() => { LM = "asra"; lipid(); });
+  const asH = await ev(() => $("lr").textContent);
+  ok(T("hold + ASRA: lean weight, 'as ASRA advises'"), /lean body weight/.test(asH) && /as ASRA advises/.test(asH));
+  await p.evaluate(() => { window.__cp = null; Object.defineProperty(navigator, "clipboard", { value: { writeText: (t) => { window.__cp = t; return Promise.resolve(); } }, configurable: true }); window.alert = () => {}; });
+  await ev(() => copySummary());
+  ok(T("hold: copied summary uses the lean weight"), (await ev(() => window.__cp)).includes(await ev(() => "lean body weight " + fl(st.P.lbw, 1) + " kg")), await ev(() => window.__cp));
+  ok(T("hold: working step 9 uses the lean weight"), /9\. Lipid rescue[\s\S]*lean body weight[\s\S]*not lean weight/.test(await ev(() => (ov(1), $("wk").innerText))));
+  await ev(() => { ov(0); S.hold = false; LM = "aagbi"; }); await setPt(p, 120, 1.7, "Male");
+  ok(T("LBW mode (hold off): lean footnote, QRH not credited"), /lean body weight/.test(await ev(() => $("lr").textContent)) && !/ASRA/.test(await ev(() => $("lr").textContent)));
+  await setPt(p, 90, 1.7, "Male");
+  ok(T("blend mode: adjusted-weight footnote"), /adjusted weight/.test(await ev(() => $("lr").textContent)));
+  await setPt(p, 70, 1.75, "Male");
+
+  // ---- item 6: height over 3 m / 300 cm pauses calculations
+  await setPt(p, 70, 301, "Male");
+  ok(T("height 301 pauses (P.ok false)"), (await ev(() => st.P.ok)) === false);
+  ok(T("height 301: tables show a dash"), (await ev(() => $("tb").querySelector(".pill").textContent)) === "\u2014");
+  ok(T("height 301: plan hidden"), (await ev(() => $("plan").style.display)) === "none");
+  ok(T("height 301: message explains"), /height over 3 m \/ 300 cm: calculations paused until corrected/.test(await ev(() => $("pwarn").textContent)));
+  ok(T("height 301: dilution does not check against a weight"), !/exceeds max for this patient/.test(await ev(() => $("kr").textContent)));
+  await setPt(p, 70, 1750, "Male");
+  ok(T("height 1750 pauses"), (await ev(() => st.P.ok)) === false);
+  await setPt(p, 70, 300, "Male");
+  ok(T("height 300 cm does not pause (soft warning)"), (await ev(() => st.P.ok)) === true && /height over 2\.5 m/.test(await ev(() => $("pwarn").textContent)));
+  await setPt(p, 70, 2.99, "Male");
+  ok(T("height 2.99 m does not pause"), (await ev(() => st.P.ok)) === true);
+  await p.fill("#h", "301"); await p.press("#h", "Tab");
+  ok(T("height 301 blocking pop-up says calculations are paused"), (await ev(() => $("chk").classList.contains("on"))) && /300 cm.*paused/.test(await ev(() => $("chkm").textContent)), await ev(() => $("chkm").textContent));
+  await p.click("#chkb");
+  await p.fill("#h", "1.75");
+  ok(T("no console or page errors (safety tests)"), p.errs.length === 0, p.errs);
+  await p.close();
+}
+
 /* ---------- builder: bad configs must be rejected ---------- */
 function builderTests() {
   const tmp = path.join(ROOT, "orgs", "test-tmp");
@@ -215,6 +367,8 @@ function builderTests() {
   rejects("bad colour", { theme: { primary: "blue" } }, /theme\.primary/);
   rejects("LAST default not enabled", { last: { enabled: ["asra"], default: "aagbi" } }, /last\.default/);
   rejects("out-of-range default", { defaults: { lidoCap: 99999 } }, /defaults\.lidoCap/);
+  rejects("dose limit above 15 mg/kg", { agentOverrides: { lp1: { maxMgPerKg: 30 } } }, /maxMgPerKg/);
+  rejects("concentration above 200 mg/ml", { addAgents: [{ id: "z2", name: "z", mgPerMl: 250, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   rejects("zero concentration", { addAgents: [{ id: "z1", name: "z", mgPerMl: 0, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   ok("builder accepts a valid minimal org", tryCfg({}) === null);
   // reserved folder names are refused
@@ -242,6 +396,7 @@ function builderTests() {
     cfg.build = JSON.parse(fs.readFileSync(path.join(ROOT, "dist", org, "build-info.json"), "utf8"));
     cfg.text.disclaimer = cfg.text.disclaimer; // not compared verbatim
     await coreTests(browser, org, cfg);
+    await safetyTests(browser, org, cfg);
   }
   await browser.close();
   console.log(`\n${pass} passed, ${fail} failed`);

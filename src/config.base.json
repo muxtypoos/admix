@@ -176,15 +176,19 @@
   ],
   "default": "aagbi",
   "captions": {
-   "aagbi": "AAGBI Safety Guideline: Management of Severe Local Anaesthetic Toxicity (2010, archived).",
+   "aagbi": "Association of Anaesthetists Quick Reference Handbook 3-10 Local anaesthetic toxicity v.2 (2023). Association of Anaesthetists 2023, www.anaesthetists.org/qrh, CC BY-NC-SA 4.0.",
    "asra": "ASRA Local Anaesthetic Systemic Toxicity Checklist, v1.1 (2020)."
   },
+  "names": {
+   "aagbi": "Association of Anaesthetists QRH 3-10 (2023)",
+   "asra": "ASRA 2020"
+  },
   "alt": {
-   "aagbi": "AAGBI 2010 severe local anaesthetic toxicity guideline",
+   "aagbi": "Association of Anaesthetists QRH 3-10 Local anaesthetic toxicity, 2023",
    "asra": "ASRA 2020 local anaesthetic systemic toxicity checklist"
   },
   "images": {
-   "aagbi": "src/assets/last-aagbi.jpg",
+   "aagbi": "src/assets/last-qrh.jpg",
    "asra": "src/assets/last-asra.jpg"
   }
  },

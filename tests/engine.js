@@ -112,12 +112,87 @@ eq("other drugs are not counted", E.parseAirway("lidocaine 4% 3 ml, ketamine 50 
 eq("empty text", E.parseAirway("", SA).tot, 0);
 
 /* lipid rescue (settings: 1.5 ml/kg bolus, 15 ml/kg/h infusion, doubled once, cap 12 ml/kg) */
+/* (the mode key "aagbi" is historic: it now means the Association of Anaesthetists QRH 3-10 (2023) option) */
 const SL = { bolus: 1.5, inf: 15, mult: 2, cap: 12 };
 let L = E.lastDoses(70, SL, "aagbi");
-eq("AAGBI 70 kg", [L.b, L.inf, L.dbl, L.cap, L.over], [105, 1050, 2100, 840, false]);
+eq("UK (QRH) 70 kg", [L.b, L.inf, L.dbl, L.cap, L.over], [105, 1050, 2100, 840, false]);
 L = E.lastDoses(70, SL, "asra"); eq("ASRA 70 kg bolus capped at 100", [L.b, L.over], [100, false]);
 L = E.lastDoses(80, SL, "asra"); eq("ASRA over 70 kg fixed", [L.b, L.over], [100, true]);
 L = E.lastDoses(50, SL, "asra"); eq("ASRA 50 kg", L.b, 75);
+
+/* QRH 70 kg example: infusion 15 ml/kg/h = 17.5 ml/min, doubled 35 ml/min */
+L = E.lastDoses(70, SL, "aagbi"); eq("QRH infusion ml/min", [L.mn, L.dmn], [17.5, 35]);
+
+/* ---------- height limit: above 3 m (or 300 cm) pauses calculations ---------- */
+const pH = (h) => E.patient({ w: 70, h, age: 40, male: true, PM: false, WM: "auto", S, CEN: {} });
+eq("height 301 (cm) pauses", [pH(301).ok, pH(301).hbad], [false, true]);
+eq("height 1750 pauses", [pH(1750).ok, pH(1750).hbad], [false, true]);
+eq("height 3.01 is read as 3.01 cm: ignored (flagged on screen), not a pause", [pH(3.01).ok, pH(3.01).noh], [true, true]);
+eq("height 300 (cm = 3 m) does not pause", [pH(300).ok, pH(300).hbad], [true, false]);
+eq("height 2.99 m does not pause", [pH(2.99).ok, pH(2.99).hbad], [true, false]);
+eq("height 175 cm normal", [pH(175).ok, pH(175).hbad, pH(175).h], [true, false, 1.75]);
+eq("weight 300 ok, 301 pauses", [E.patient({ w: 300, h: 1.7, age: 40, male: true, PM: false, WM: "auto", S, CEN: {} }).ok, E.patient({ w: 301, h: 1.7, age: 40, male: true, PM: false, WM: "auto", S, CEN: {} }).ok], [true, false]);
+
+/* ---------- dose-limit bounds (mg/kg 0 to 15, custom concentration above 0 up to 200 mg/ml) ---------- */
+eq("bounds exported", [E.KMAX, E.CMAX], [15, 200]);
+ag = E.agents(BASE, { l: { k: 30 } }, [], Sx, false, false); eq("override 30 mg/kg is clamped to 15", ag[0].k, 15);
+ag = E.agents(BASE, { l: { k: 30 } }, [], Sx, false, true); eq("override 30 mg/kg is clamped in the settings (raw) list too", ag[0].k, 15);
+ag = E.agents(BASE, { l: { k: 15 } }, [], Sx, false, false); eq("override 15 allowed", ag[0].k, 15);
+ag = E.agents(BASE, { l: { k: 0 } }, [], Sx, false, false); eq("override 0 allowed", ag[0].k, 0);
+ag = E.agents(BASE, { l: { k: -2 } }, [], Sx, false, false); eq("negative override is not used (default kept)", ag[0].k, 3);
+ag = E.agents(BASE, { l: { k: Infinity } }, [], Sx, false, false); eq("infinite override is not used", ag[0].k, 3);
+ag = E.agents(BASE, { l: { k: 30 } }, [], Sx, true, false); eq("clamp applies before the neonatal reduction (15 x 0.5)", ag[0].k, 7.5);
+ag = E.agents(BASE, {}, [{ id: "x", name: "C", c: 500, k: 30, on: true }], Sx, false, false); eq("custom 500 mg/ml and 30 mg/kg clamped to 200 and 15", [ag[2].c, ag[2].k, ag[2].inv, ag[2].on], [200, 15, false, true]);
+ag = E.agents(BASE, {}, [{ id: "x", name: "C", c: 200, k: 15, on: true }], Sx, false, false); eq("custom at the limits allowed", [ag[2].c, ag[2].k, ag[2].inv], [200, 15, false]);
+ag = E.agents(BASE, {}, [{ id: "x", name: "C", c: 0, k: 3, on: true }], Sx, false, false); eq("custom concentration 0 is invalid", [ag[2].inv, ag[2].on], [true, false]);
+
+/* ---------- airway text parser ---------- */
+const SP = { cpMg: 5, cpN: 10 };   // co-phenylcaine: 5 mg lidocaine per spray (the app default)
+const pa = (t) => E.parseAirway(t, SP);
+const flagged = (r) => r.sk.length > 0 || r.items.some((i) => i.bad);
+let r = pa("lidocaine 1.5 mg/kg");
+eq("per-kg dose is not counted", r.tot, 0); eq("per-kg dose is flagged", [r.items[0].bad, r.items[0].fl[0]], [1, "dose given per kg: not counted, enter the total mg"]);
+eq("mg per kg wording is flagged too", [pa("lidocaine 3 mg per kg").tot, flagged(pa("lidocaine 3 mg per kg"))], [0, true]);
+eq("per-kg next to another item: only the other is counted", [pa("lidocaine 1.5 mg/kg, lidocaine 4% 5 ml").tot, flagged(pa("lidocaine 1.5 mg/kg, lidocaine 4% 5 ml"))], [200, true]);
+eq("twice", pa("lidocaine 4% 5ml nebulised twice").tot, 400);
+eq("twice shown in the label", pa("lidocaine 4% 5ml nebulised twice").items[0].label.includes("× 2"), true);
+eq("thrice", pa("lidocaine 4% 5ml thrice").tot, 600);
+eq("3 times", pa("lidocaine 4% 5ml 3 times").tot, 600);
+eq("times 3", pa("lidocaine 4% 5ml times 3").tot, 600);
+eq("two times (word number)", pa("lidocaine 4% 5ml two times").tot, 400);
+eq("twice with sprays", pa("co-phenylcaine 5 sprays each nostril twice").tot, 100);
+eq("x 2 and twice together are multiplied and flagged", [pa("lidocaine 4% 5ml x 2 twice").tot, flagged(pa("lidocaine 4% 5ml x 2 twice"))], [800, true]);
+eq("a separate 'twice' item is flagged, never dropped", [pa("lidocaine 4% 5ml, twice").sk, pa("lidocaine 4% 5ml, twice").tot], [["twice"], 200]);
+eq("comma between items: 4% 5ml x 2, 2% 2ml", pa("lidocaine 4% 5ml x 2,2% 2ml").tot, 440);
+eq("comma between items: spray x 10, 4% 5ml", pa("lidocaine 10% spray x 10,4% lidocaine 5ml").tot, 300);
+eq("second part without a drug name is flagged as assumed", pa("lidocaine 4% 5ml x 2,2% 2ml").items[1].fl.includes("drug name not stated: assumed lidocaine"), true);
+eq("a bare leftover number is flagged as not counted", [pa("lidocaine 4% 5ml, 2").tot, pa("lidocaine 4% 5ml, 2").sk], [200, ["2"]]);
+eq("a comma is never a decimal point: 2,5 ml is flagged", flagged(pa("lidocaine 2,5 ml 4%")), true);
+eq("x 2 nostrils is a nostril count, not a repeat", [pa("co-phenylcaine 5 sprays x 2 nostrils").tot, pa("co-phenylcaine 5 sprays x 2 nostrils").items[0].fl.length], [50, 0]);
+/* regressions */
+eq("5 ml 4% lidocaine", pa("5 ml 4% lidocaine").tot, 200);
+eq("co-phenylcaine 5 sprays per nostril", pa("co-phenylcaine 5 sprays per nostril").tot, 50);
+eq("10 sprays 10% lidocaine", pa("10 sprays 10% lidocaine").tot, 100);
+eq("lidocaine 0.5 g", pa("lidocaine 0.5 g").tot, 500);
+eq("lidocaine 4% 5 ml x2", pa("lidocaine 4% 5 ml x2").tot, 400);
+eq("2 x 5ml 4% lidocaine", pa("2 x 5ml 4% lidocaine").tot, 400);
+eq("three items", pa("5 ml 4% lidocaine topical, 3 ml co-phenylcaine, 2 ml 2% lidocaine via scope").tot, 390);
+eq("thousands comma 1,000 mg", pa("lidocaine 1,000 mg").tot, 1000);
+eq("five ml 4% lidocaine", pa("five ml 4% lidocaine").tot, 200);
+eq("regression inputs are not flagged", ["5 ml 4% lidocaine", "co-phenylcaine 5 sprays per nostril", "10 sprays 10% lidocaine", "lidocaine 0.5 g", "lidocaine 4% 5 ml x2", "2 x 5ml 4% lidocaine", "lidocaine 1,000 mg", "five ml 4% lidocaine"].some((t) => flagged(pa(t))), false);
+
+/* ---------- lipid weight: lean body weight when the dosing weight is held at the BMI threshold weight ---------- */
+const pL = (w, h, Sx2, WM) => E.patient({ w, h, age: 40, male: true, PM: false, WM: WM || "auto", S: Sx2, CEN: {} });
+P = pL(120, 1.7, Sh);
+eq("hold mode: lipid weight is LBW (not the held weight)", [P.mode, E.lipidWeight(P) === P.lbw, P.lbw > 0, P.wt > P.lbw], ["Held at BMI threshold weight", true, true, true]);
+eq("hold mode: basis text", E.lipidBasis(P), "lean body weight");
+P = pL(70, 1.75, Sh); eq("hold mode below threshold: total weight", [P.mode, E.lipidWeight(P), E.lipidBasis(P)], ["TBW", 70, "total body weight"]);
+P = pL(120, 1.7, S); eq("LBW mode: lean weight", [P.mode, E.lipidWeight(P) === P.wt, E.lipidBasis(P)], ["LBW", true, "lean body weight"]);
+P = pL(90, 1.7, S); eq("blend mode: dosing (adjusted) weight, not lean", [P.mode, E.lipidWeight(P) === P.wt, E.lipidWeight(P) > P.lbw, E.lipidBasis(P)], ["Adjusted (TBW→LBW)", true, true, "adjusted weight (between total and lean body weight)"]);
+P = pL(120, 1.7, S, "tbw"); eq("manual TBW: total weight", [E.lipidWeight(P), E.lipidBasis(P)], [120, "total body weight"]);
+P = pL(120, 1.7, S, "lbw"); eq("manual LBW: lean weight", [E.lipidWeight(P) === P.lbw, E.lipidBasis(P)], [true, "lean body weight"]);
+P = pL(120, 1.7, { ...Sh }, "tbw"); eq("hold set but manual TBW chosen: total weight", E.lipidWeight(P), 120);
+eq("hold mode lipid doses use the lean weight", E.lastDoses(E.lipidWeight(pL(120, 1.7, Sh)), SL, "asra").cap, Math.round(pL(120, 1.7, Sh).lbw * 12));
 
 console.log(`engine tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
