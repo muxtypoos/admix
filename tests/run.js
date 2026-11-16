@@ -56,6 +56,15 @@ async function coreTests(browser, org, cfg) {
   await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "hold"; s.dispatchEvent(new Event("input", { bubbles: true })); });
   ok(T("hold option: weight = threshold BMI x height^2"), near(await ev(() => st.P.wt), T0 * 1.7 * 1.7, 0.01), [await ev(() => st.P.wt), T0 * 1.7 * 1.7]);
   ok(T("hold option: mode label"), (await ev(() => st.P.mode)) === "Held at BMI threshold weight");
+  ok(T("demo graph drawn with 3 lines"), (await ev(() => document.querySelectorAll("#bmig polyline").length)) === 3);
+  const gHold = await ev(() => document.querySelector("#bmig .g-d").getAttribute("points"));
+  await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "strict"; s.dispatchEvent(new Event("input", { bubbles: true })); });
+  const gStrict = await ev(() => document.querySelector("#bmig .g-d").getAttribute("points"));
+  ok(T("demo graph changes live with the setting"), gHold !== gStrict);
+  await ev(() => { const s = document.querySelector('select[data-f="lbw"]'); s.value = "boer"; s.dispatchEvent(new Event("input", { bubbles: true })); });
+  ok(T("demo graph changes with the LBW formula"), (await ev(() => document.querySelector("#bmig .g-d").getAttribute("points"))) !== gStrict);
+  await ev(() => { const s = document.querySelector('select[data-f="lbw"]'); s.value = "jan"; s.dispatchEvent(new Event("input", { bubbles: true })); });
+  await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "hold"; s.dispatchEvent(new Event("input", { bubbles: true })); });
   await setPt(p, 70, 1.75, "Male");
   ok(T("hold option: below threshold still TBW"), near(await ev(() => st.P.wt), 70));
   await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "blend"; s.dispatchEvent(new Event("input", { bubbles: true })); });
