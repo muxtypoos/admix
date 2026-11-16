@@ -5,12 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 (major = dosing logic or limits change, minor = new feature, patch = fix or wording). Versions below 1.0.0 are pre-release: not yet signed off for clinical use.
 
 
-## [Unreleased]
-### Added
-- Expert settings: live demonstration graph under the BMI threshold. It shows total weight, lean weight and the dosing weight for an example 175 cm man across BMI 18 to 50 or more, using the real engine, and redraws as the lean weight formula, threshold and blend/strict/hold option change.
-
 ## [0.4.0-beta] - 2026-11-16
 ### Added
+- Expert settings: live demonstration graph under the BMI threshold. It shows total weight, lean weight and the dosing weight for an example 175 cm man across BMI 18 to 50 or more, using the real engine, and redraws as the lean weight formula, threshold and blend/strict/hold option change.
 - New Expert option for high BMI: "Hold weight at the threshold BMI weight" (`defaults.hold`, off by default). At or above the BMI threshold the dosing weight stays at threshold BMI x height squared, instead of blending or switching to lean body weight. Adults and children (RCPCH centile threshold).
 - "Show working" section at the top of Expert settings: walks through every step behind the numbers on screen (patient, lean body weight, dosing weight, neonatal adjustment, airway pool, single and dual agent maximums, dilution, lipid rescue, warnings and rounding), using the live patient and settings. Tests check it agrees with the main table.
 - Request form for organisations: one-page Excel workbook (`Admix-request-form.xlsx`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
