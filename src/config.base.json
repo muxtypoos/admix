@@ -22,8 +22,8 @@
   "pc": "c98",
   "bmi": 30,
   "blend": true,
+  "hold": false,
   "lidoCap": 9,
-  "lidoMax": 700,
   "cpMg": 5,
   "cpN": 10,
   "bolus": 1.5,
@@ -195,7 +195,7 @@
   "defaultLimitsShort": "Default limits are commonly quoted reference values within UK practice.",
   "neonate": "Protein binding is reduced in neonates; consider reducing dose by up to 50%. Verify doses against local guidance.",
   "infant": "Consider reducing dose. Verify doses against local guidance.",
-  "airwayGuideline": "9 mg/kg is the DAS guideline maximum for awake tracheal intubation (ATI), capped at 700 mg. Airway lidocaine used is subtracted from this pool.",
+  "airwayGuideline": "9 mg/kg is the DAS guideline maximum for awake tracheal intubation (ATI). Airway lidocaine used is subtracted from this pool.",
   "disclaimer": "<b>Disclaimer:</b> UI entirely vibecoded in Claude Sonnet 5.5, based on a functional excel based applet. This calculator has been stress tested and double checked for accuracy.{contact}"
  }
 }

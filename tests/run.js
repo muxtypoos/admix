@@ -50,6 +50,18 @@ async function coreTests(browser, org, cfg) {
   await setPt(p, 90, "", "Male");
   ok(T("no height -> TBW"), (await ev(() => st.P.wt)) === 90);
 
+  // Expert option: hold the weight at the threshold BMI weight (set through the real settings control)
+  await setPt(p, 120, 1.7, "Male");
+  await ev(() => ov(1));
+  await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "hold"; s.dispatchEvent(new Event("input", { bubbles: true })); });
+  ok(T("hold option: weight = threshold BMI x height^2"), near(await ev(() => st.P.wt), T0 * 1.7 * 1.7, 0.01), [await ev(() => st.P.wt), T0 * 1.7 * 1.7]);
+  ok(T("hold option: mode label"), (await ev(() => st.P.mode)) === "Held at BMI threshold weight");
+  await setPt(p, 70, 1.75, "Male");
+  ok(T("hold option: below threshold still TBW"), near(await ev(() => st.P.wt), 70));
+  await ev(() => { const s = document.querySelector('select[data-f="hi"]'); s.value = "blend"; s.dispatchEvent(new Event("input", { bubbles: true })); });
+  ok(T("hold option off again"), (await ev(() => S.hold)) === false);
+  await ev(() => ov(0));
+
   // doses follow the config: for every enabled agent, max ml = W * k / c
   await setPt(p, 70, 1.75, "Male");
   const en = await ev(() => st.en.map((a) => [a.id, a.k, a.c, st.W * a.k / a.c]));
@@ -60,7 +72,7 @@ async function coreTests(browser, org, cfg) {
   // airway pool uses config defaults and cap
   const lbw = await ev(() => st.P.lbw);
   const pool = await ev(() => st.pool);
-  ok(T("airway pool = min(lidoCap*LBW, lidoMax)"), near(pool, Math.min(cfg.defaults.lidoCap * lbw, cfg.defaults.lidoMax), 0.1), [pool, lbw]);
+  ok(T("airway pool = lidoCap*LBW (no absolute cap)"), near(pool, cfg.defaults.lidoCap * lbw, 0.1), [pool, lbw]);
   await p.fill("#at", "4% lidocaine 5ml");
   await ev(() => calc());
   ok(T("airway parse 200 mg"), near(await ev(() => st.used), 200, 0.5));
@@ -142,7 +154,7 @@ async function coreTests(browser, org, cfg) {
   await ev(() => { const i = document.querySelector("#sg [data-f=lidoCap]"); i.value = 7; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); });
   ok(T("settings saved with storage prefix"), (await ev((k) => !!localStorage.getItem(k + "Set"), cfg.storagePrefix)) === true);
   await p.click("#rst");
-  ok(T("reset restores the org's defaults"), (await ev(() => S.lidoCap)) === cfg.defaults.lidoCap && (await ev(() => S.lidoMax)) === cfg.defaults.lidoMax);
+  ok(T("reset restores the org's defaults"), (await ev(() => S.lidoCap)) === cfg.defaults.lidoCap && (await ev(() => S.hold)) === cfg.defaults.hold);
   await p.click('#ov button:has-text("Close")');
 
   // print is one A4 page
@@ -193,7 +205,7 @@ function builderTests() {
   rejects("duplicate agent id", { addAgents: [{ id: "lp1", name: "x", mgPerMl: 10, maxMgPerKg: 3, group: "lP" }] }, /duplicate id/);
   rejects("bad colour", { theme: { primary: "blue" } }, /theme\.primary/);
   rejects("LAST default not enabled", { last: { enabled: ["asra"], default: "aagbi" } }, /last\.default/);
-  rejects("out-of-range default", { defaults: { lidoMax: 99999 } }, /defaults\.lidoMax/);
+  rejects("out-of-range default", { defaults: { lidoCap: 99999 } }, /defaults\.lidoCap/);
   rejects("zero concentration", { addAgents: [{ id: "z1", name: "z", mgPerMl: 0, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   ok("builder accepts a valid minimal org", tryCfg({}) === null);
   // reserved folder names are refused

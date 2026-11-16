@@ -31,7 +31,7 @@ function patient(i){var S=i.S,PM=i.PM,WM=i.WM,CEN=i.CEN,w=+i.w,h=+i.h,age=i.age;
 var male=!!i.male,sx=male?"M":"F",bmi=w&&h?w/(h*h):0,lbw=bmi?lbwF(PM?S.lbwP:S.lbw,w,h,male,bmi):0,T=S.bmi,bw=5,wt=w,mode="TBW",tbwOnly=false,band="",cc=null;
 if(PM){if(bmi&&age>=2&&age<=20){T=cen(CEN,sx,S.pc,age);bw=T*0.1;cc={c91:cen(CEN,sx,"c91",age),c98:cen(CEN,sx,"c98",age),c996:cen(CEN,sx,"c996",age)};band=bmi>=cc.c996?"severely obese (\u226599.6th)":bmi>=cc.c98?"obese (\u226598th)":bmi>=cc.c91?"overweight (\u226591st)":"below 91st centile"}else{tbwOnly=true;T=1e9}}
 if(WM=="lbw"&&lbw>0){wt=lbw;mode="LBW (manual)"}else if(WM=="tbw"){mode=bmi>=T?"TBW (manual)":"TBW"}
-else if(bmi>=T){if(S.blend&&bmi<T+bw){wt=w+(lbw-w)*((bmi-T)/bw);mode="Adjusted (TBW\u2192LBW)"}else{wt=lbw;mode="LBW"}}
+else if(bmi>=T){if(S.hold){wt=Math.min(w,T*h*h);mode="Held at BMI threshold weight"}else if(S.blend&&bmi<T+bw){wt=w+(lbw-w)*((bmi-T)/bw);mode="Adjusted (TBW\u2192LBW)"}else{wt=lbw;mode="LBW"}}
 return{neo:PM&&age>0&&age<=0.2501,w:w,h:h,bmi:bmi,lbw:lbw,wt:wt,mode:mode,ok:w>0&&w<=300,noh:!h,hm:hm,tbwOnly:tbwOnly,thr:(PM&&!tbwOnly)?T:0,band:band,cc:cc,age:age,sx:sx}}
 
 /* ---------- 4. Agent list with limits (neonatal reduction, prilocaine lock-out, expert overrides, custom agents) ---------- */
@@ -81,7 +81,7 @@ items.push(r);last={text:s0,r:r,C:isC(s0.toLowerCase())}});
 var tot=0;items.forEach(function(r){tot+=r.mg});return{items:items,sk:sk,ot:ot,tot:tot}}
 
 /* Airway lidocaine pool: pool = LBW (or TBW if no height) x mg/kg, capped; fr = fraction left; W = weight used for all other doses. */
-function airwayPool(P,S,used){var pb=P.lbw||P.w,pool=pb?Math.min(pb*S.lidoCap,S.lidoMax):0,fr=pool?Math.max(0,(pool-used)/pool):1;return{pb:pb,pool:pool,fr:fr,W:P.wt*fr}}
+function airwayPool(P,S,used){var pb=P.lbw||P.w,pool=pb?pb*S.lidoCap:0,fr=pool?Math.max(0,(pool-used)/pool):1;return{pb:pb,pool:pool,fr:fr,W:P.wt*fr}}
 
 /* ---------- 6. Single agent, pairs, dilution ---------- */
 /* Unrounded maximum volume (ml) of agent a for weight W */

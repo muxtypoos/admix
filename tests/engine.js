@@ -67,6 +67,15 @@ P = E.patient({ w: 120, h: 170, age: 40, male: true, PM: false, WM: "auto", S, C
 eq("BMI 41.5 uses LBW", [P.mode, P.wt === P.lbw], ["LBW", true]);
 P = E.patient({ w: 90, h: 170, age: 40, male: false, PM: false, WM: "auto", S, CEN: {} });   // BMI 31.1: inside the 5-unit blend zone
 eq("blend zone", P.mode, "Adjusted (TBW→LBW)");
+const Sh = { ...S, hold: true };
+P = E.patient({ w: 90, h: 170, age: 40, male: false, PM: false, WM: "auto", S: Sh, CEN: {} });
+eq("hold: weight is threshold BMI x height^2", P.wt, 30 * 1.7 * 1.7, 1e-9);
+eq("hold: mode label", P.mode, "Held at BMI threshold weight");
+P = E.patient({ w: 150, h: 170, age: 40, male: false, PM: false, WM: "auto", S: Sh, CEN: {} });
+eq("hold: stays flat at high BMI", P.wt, 30 * 1.7 * 1.7, 1e-9);
+P = E.patient({ w: 80, h: 170, age: 40, male: false, PM: false, WM: "auto", S: Sh, CEN: {} });
+eq("hold: below threshold is total weight", P.wt, 80);
+P = E.patient({ w: 90, h: 170, age: 40, male: false, PM: false, WM: "auto", S, CEN: {} });
 eq("blend value", P.wt, 90 + (P.lbw - 90) * ((P.bmi - 30) / 5), 1e-9);
 P = E.patient({ w: 120, h: 170, age: 40, male: true, PM: false, WM: "tbw", S, CEN: {} });
 eq("manual TBW", P.mode, "TBW (manual)");
@@ -89,11 +98,11 @@ ag = E.agents(BASE, {}, [{ id: "x", name: "Custom", c: -1, k: 2, on: true }], Sx
 eq("invalid custom agent is flagged and off", [ag[2].inv, ag[2].on], [true, false]);
 
 /* airway lidocaine pool: 50 kg LBW x 6 mg/kg = 300 mg; 150 mg used leaves half; dosing weight 60 -> 30 */
-const ap = E.airwayPool({ lbw: 50, w: 80, wt: 60 }, { lidoCap: 6, lidoMax: 500 }, 150);
+const ap = E.airwayPool({ lbw: 50, w: 80, wt: 60 }, { lidoCap: 6 }, 150);
 eq("pool", ap.pool, 300); eq("fraction left", ap.fr, 0.5); eq("weight for other doses", ap.W, 30);
-eq("pool is capped", E.airwayPool({ lbw: 100, w: 100, wt: 100 }, { lidoCap: 6, lidoMax: 500 }, 0).pool, 500);
-eq("pool uses TBW without height", E.airwayPool({ lbw: 0, w: 70, wt: 70 }, { lidoCap: 6, lidoMax: 500 }, 0).pool, 420);
-eq("over-used pool leaves nothing", E.airwayPool({ lbw: 50, w: 80, wt: 60 }, { lidoCap: 6, lidoMax: 500 }, 400).W, 0);
+eq("pool has no absolute cap", E.airwayPool({ lbw: 100, w: 100, wt: 100 }, { lidoCap: 9 }, 0).pool, 900);
+eq("pool uses TBW without height", E.airwayPool({ lbw: 0, w: 70, wt: 70 }, { lidoCap: 6 }, 0).pool, 420);
+eq("over-used pool leaves nothing", E.airwayPool({ lbw: 50, w: 80, wt: 60 }, { lidoCap: 6 }, 400).W, 0);
 
 /* airway text: 4% = 40 mg/ml so 3 ml = 120 mg; 2% 5 ml = 100 mg plus 1% 4 ml = 40 mg */
 const SA = { cpMg: 10, cpN: 4 };

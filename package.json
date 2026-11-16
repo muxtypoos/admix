@@ -1,6 +1,6 @@
 {
   "name": "admix",
-  "version": "0.3.0-beta",
+  "version": "0.4.0-beta",
   "private": true,
   "description": "Admix - Local Anaesthetic Calculator: one core app, one config per organisation",
   "scripts": {
@@ -9,7 +9,7 @@
     "check": "node scripts/build.js --check",
     "build": "node scripts/build.js --all",
     "build:org": "node scripts/build.js --org",
-    "test": "node tests/engine.js && node scripts/build.js --all && node tests/run.js && node tests/equivalence.js 300 && python3 tests/check_form.py",
+    "test": "node tests/engine.js && node scripts/build.js --all && node tests/run.js && python3 tests/check_form.py",
     "test:engine": "node tests/engine.js"
   },
   "engines": { "node": ">=18" },

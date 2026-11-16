@@ -51,7 +51,7 @@ Only list what differs from `src/config.base.json`. Objects merge; lists are rep
 |---|---|
 | `org` | `id` (= folder name), `name`, `title` (browser/app title; requests get `Admix - Local Anaesthetic Calculator - <short name>`), `shortName`, `contactName`, `contactEmail` (disclaimer line), `publish` (false = no public link), `signoff` (`name`, `email`, `date` from form section 6; kept out of the page, written to `build-info.json`) |
 | `theme` | `primary`, `primaryDark` (#rrggbb accent colours for light/dark mode) |
-| `defaults` | Starting values of the Expert settings: `lbw`, `lbwP`, `pc`, `bmi`, `blend`, `lidoCap`, `lidoMax`, `cpMg`, `cpN`, `bolus`, `inf`, `mult`, `cap`, `neoRed` |
+| `defaults` | Starting values of the Expert settings: `lbw`, `lbwP`, `pc`, `bmi`, `blend`, `hold`, `lidoCap`, `cpMg`, `cpN`, `bolus`, `inf`, `mult`, `cap`, `neoRed` |
 | `agentOverrides` | Tweak individual agents by id, e.g. `{"b25": {"maxMgPerKg": 2.5, "enabled": false}}` |
 | `removeAgents` | Ids to remove from the list |
 | `addAgents` | New agents: `{id, name, mgPerMl, maxMgPerKg, group, enabled}` (1% = 10 mg/ml) |

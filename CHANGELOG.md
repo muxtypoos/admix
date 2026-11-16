@@ -4,8 +4,10 @@ All notable changes to the core app and to each organisation's config. The versi
 Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer](https://semver.org)
 (major = dosing logic or limits change, minor = new feature, patch = fix or wording). Versions below 1.0.0 are pre-release: not yet signed off for clinical use.
 
-## [Unreleased]
+
+## [0.4.0-beta] - 2026-11-16
 ### Added
+- New Expert option for high BMI: "Hold weight at the threshold BMI weight" (`defaults.hold`, off by default). At or above the BMI threshold the dosing weight stays at threshold BMI x height squared, instead of blending or switching to lean body weight. Adults and children (RCPCH centile threshold).
 - "Show working" section at the top of Expert settings: walks through every step behind the numbers on screen (patient, lean body weight, dosing weight, neonatal adjustment, airway pool, single and dual agent maximums, dilution, lipid rescue, warnings and rounding), using the live patient and settings. Tests check it agrees with the main table.
 - Request form for organisations: one-page Excel workbook (`Admix-request-form.xlsx`), pre-filled with the current default anaesthetics, maximum doses, settings and wording, with a free-text box at the end. Generated from `src/config.base.json` and checked by the tests.
 - Hands-off requests: submitting the Excel form as a GitHub issue builds the organisation, runs the tests and opens a pull request for review (`.github/workflows/organisation-request.yml`, `scripts/handle_request.py`).
@@ -13,7 +15,10 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 - Clinical sign-off moved to the end of the form (section 6): Yes, plus the name and email of the person confirming. This is recorded in the organisation's config and build info, so `SIGNOFF.md` files are no longer used.
 - Every published organisation is built to `<id>/index.html` for GitHub Pages (`npm run pages`); `org.publish: false` opts out.
 - `scripts/admix_form.py read` turns a returned Excel form into an organisation config (differences from the defaults only) plus request notes.
+### Removed
+- The 700 mg absolute cap on the airway lidocaine pool, with its Expert setting, form row and per-organisation `lidoMax` default. The pool is now 9 mg/kg of lean body weight (DAS guideline). No source for 700 mg could be found.
 ### Changed
+- Retired `tests/equivalence.js` from the test run: it compared against the pre-engine build, which still had the 700 mg cap.
 - All equations and dosing rules now live in one separate file, `src/engine.js` (no screen code, no hidden state), so they can be audited, tested and changed on their own. The page only gathers inputs and shows results. The build inserts the engine into each page unchanged. No change to any number: a 500-case comparison against the previous build found zero differences (`tests/equivalence.js`, baseline kept in `tests/baseline/`), and `tests/engine.js` checks fixed worked examples by hand-calculated answers.
 - Airway topicalisation note now asks users to double check the amounts and calculations (replaces "Parsed by: Rules").
 - Every "over the maximum" message (airway lidocaine, chart, plan box, dual-agent, dilution) now also shows how many % over the maximum the dose is.
@@ -36,5 +41,5 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 
 ### Earlier history (before version control)
 Calculator features built up to the pre-split "v4": dosing-weight logic (TBW/LBW/blend), paediatric mode (RCPCH centiles),
-airway lidocaine pool (9 mg/kg LBW, 700 mg cap), dual-agent and "I have used" calculators, dilution, LAST (AAGBI/ASRA),
+airway lidocaine pool (9 mg/kg LBW), dual-agent and "I have used" calculators, dilution, LAST (AAGBI/ASRA),
 implausible-value pop-ups, one-page print, Android print plugin support.

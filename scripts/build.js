@@ -26,7 +26,7 @@ const CENTILES = ["c91", "c98", "c996"];
 const LAST_GUIDELINES = ["aagbi", "asra"];
 // Bounds the app itself clamps to at runtime (keep in sync with BND in template.html)
 const BOUNDS = {
-  bmi: [15, 60], lidoCap: [0.5, 30], lidoMax: [50, 2000], cpMg: [0.5, 50], cpN: [1, 60],
+  bmi: [15, 60], lidoCap: [0.5, 30], cpMg: [0.5, 50], cpN: [1, 60],
   bolus: [0.1, 5], inf: [1, 60], mult: [1, 4], cap: [1, 30], neoRed: [0, 90],
 };
 
@@ -94,6 +94,7 @@ function validate(cfg) {
   if (!LBW_FORMULAS.includes(d.lbwP)) bad(`defaults.lbwP must be one of ${LBW_FORMULAS}`);
   if (!CENTILES.includes(d.pc)) bad(`defaults.pc must be one of ${CENTILES}`);
   if (typeof d.blend !== "boolean") bad("defaults.blend must be true or false");
+  if (typeof d.hold !== "boolean") bad("defaults.hold must be true or false");
   for (const [k, [lo, hi]] of Object.entries(BOUNDS))
     if (typeof d[k] !== "number" || !isFinite(d[k]) || d[k] < lo || d[k] > hi) bad(`defaults.${k} must be a number from ${lo} to ${hi}`);
   const ids = new Set();

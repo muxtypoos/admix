@@ -110,7 +110,7 @@ try:
     free = next(r for r in range(row_of(ws, "Name", s2) + 1, s3) if not ws.cell(row=r, column=1).value)
     for c, v in enumerate(["0.5% Mepivacaine", 5, 4, "Yes"], start=1):
         ws.cell(row=free, column=c).value = v
-    setv("Airway lidocaine absolute maximum (mg)", 600, after=s3)
+    setv("Airway lidocaine maximum (mg/kg lean body weight)", 8, after=s3)
     setv("Lipid (LAST) guidelines to show", "ASRA only", after=s3)
     setv("Footer", "Local policy: see guideline 12.", after=s4)
     ws.cell(row=s5 + 2, column=1).value = "Please add a block table."
@@ -121,7 +121,7 @@ try:
     ok("drug switched on", cfg["agentOverrides"].get("p1") == {"enabled": True})
     ok("drug removed", cfg.get("removeAgents") == ["r75"], cfg.get("removeAgents"))
     ok("drug added with group", cfg["addAgents"][0]["name"] == "0.5% Mepivacaine" and cfg["addAgents"][0]["id"] == "mepivacaine", cfg["addAgents"])
-    ok("setting changed", cfg["defaults"] == {"lidoMax": 600}, cfg.get("defaults"))
+    ok("setting changed", cfg["defaults"] == {"lidoCap": 8}, cfg.get("defaults"))
     ok("LAST ASRA only, default follows", cfg["last"] == {"enabled": ["asra"], "default": "asra"}, cfg.get("last"))
     ok("wording changed", cfg["text"] == {"footer": "Local policy: see guideline 12."}, cfg.get("text"))
     ok("free text captured", notes == "Please add a block table.")
