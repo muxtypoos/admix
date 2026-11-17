@@ -194,5 +194,10 @@ P = pL(120, 1.7, S, "lbw"); eq("manual LBW: lean weight", [E.lipidWeight(P) === 
 P = pL(120, 1.7, { ...Sh }, "tbw"); eq("hold set but manual TBW chosen: total weight", E.lipidWeight(P), 120);
 eq("hold mode lipid doses use the lean weight", E.lastDoses(E.lipidWeight(pL(120, 1.7, Sh)), SL, "asra").cap, Math.round(pL(120, 1.7, Sh).lbw * 12));
 
+eq("mgOf: 20 ml of 1% = 200 mg", E.mgOf(20, 10), 200);
+eq("mgOf: rounds down to whole mg from 10 mg", E.mgOf(32.3, 2.5), 80);
+eq("mgOf: one decimal below 10 mg", E.mgOf(1.7, 2.5), 4.2);
+eq("mgOf: text input", E.mgOf("5", 20), 100);
+
 console.log(`engine tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

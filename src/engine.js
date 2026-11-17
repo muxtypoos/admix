@@ -97,6 +97,8 @@ function maxDose(W,a){var ml=fl(W*a.k/a.c,1);return{ml:ml,mg:fl(ml*a.c,0)}}
 /* Two agents together: fractions of each limit add to at most 1. mix = largest 1:1 mixture (ml). */
 function pairLimits(a,b,W){var m1=maxMlRaw(W,a),m2=maxMlRaw(W,b);return{m1:m1,m2:m2,ok:m1>0&&m2>0,mix:(m1>0&&m2>0)?fl(2*m1*m2/(m1+m2),1):0}}
 function fractionUsed(u1,u2,m1,m2){return u1/m1+u2/m2}
+/* mg in a volume (ml) of an agent of c mg/ml, for display beside a volume: rounded down, to a whole mg from 10 mg up and to 0.1 mg below that */
+function mgOf(ml,c){var v=(+ml||0)*c;return v>=10?fl(v,0):fl(v,1)}
 /* Chart: point from a typed volume of one agent (src 1 or 2), from a table row (0-10), and the rounded point's fraction of the limit */
 function chartFromVolume(src,val,m1,m2){var x,y;if(src==1){x=Math.min(val,m1);y=m2*(1-x/m1)}else{y=Math.min(val,m2);x=m1*(1-y/m2)}return{x:x,y:y}}
 function chartFromRow(row,m1,m2){var rf=row/10;return{x:m1*(1-rf),y:m2*rf}}
@@ -116,6 +118,6 @@ function lipidBasis(P){var m=String(P.mode);if(m===HELD&&P.lbw>0)return"lean bod
 
 return{fl:fl,lbwRaw:lbwRaw,lbwF:lbwF,cen:cen,ageYears:ageYears,patient:patient,agents:agents,parseAirway:parseAirway,airwayPool:airwayPool,
 maxMlRaw:maxMlRaw,maxDose:maxDose,pairLimits:pairLimits,fractionUsed:fractionUsed,chartFromVolume:chartFromVolume,chartFromRow:chartFromRow,chartFraction:chartFraction,
-overText:overText,dilution:dilution,lastDoses:lastDoses,lipidWeight:lipidWeight,lipidBasis:lipidBasis,KMAX:KMAX,CMAX:CMAX}
+overText:overText,dilution:dilution,lastDoses:lastDoses,mgOf:mgOf,lipidWeight:lipidWeight,lipidBasis:lipidBasis,KMAX:KMAX,CMAX:CMAX}
 })();
 if(typeof module!=="undefined"&&module.exports)module.exports=Admix;
