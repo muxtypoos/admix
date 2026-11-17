@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions follow [SemVer]
 
 ## [0.4.0-beta] - 2026-11-16
 ### Added
+- Organisations choose which high BMI options are offered in Expert settings (`bmiOptions`: blend, strict SOBA switch, hold) and which is the default. A saved choice that the organisation does not offer falls back to its default.
+- Request form: "In use?" is now "On by default?"; the three lean-body-weight rows are replaced by "Adults: default threshold for obesity (BMI)", an Enabled/Disabled row for each high BMI option, and "High BMI option used by default"; the lipid guideline is named "AoA QRH (AAGBI)" (older "AAGBI" wording is still read); the lipid dose rows are removed. Older forms with the previous BMI rows are refused with a request to use the current form.
+- The builder refuses an organisation config that changes the lipid rescue doses (bolus, infusion, doubling, maximum).
 - The mg of drug is shown in brackets beside every volume of a local anaesthetic (for example "20 ml 1% lidocaine (200 mg)"): plan box, selected agent and row boxes, quick reference table, "used so far" and remaining amounts, 1:1 mixture (split into its two drugs), dilution, over-limit message, working page and copied summary. Rounded down: whole mg from 10 mg, 0.1 mg below.
 - Expert settings: live demonstration graph under the BMI threshold. It shows total weight, lean weight and the dosing weight for an example 175 cm man across BMI 18 to 50 or more, using the real engine, and redraws as the lean weight formula, threshold and blend/strict/hold option change.
 - New Expert option for high BMI: "Hold weight at the threshold BMI weight" (`defaults.hold`, off by default). At or above the BMI threshold the dosing weight stays at threshold BMI x height squared, instead of blending or switching to lean body weight. Adults and children (RCPCH centile threshold).

@@ -367,6 +367,11 @@ function builderTests() {
   rejects("bad colour", { theme: { primary: "blue" } }, /theme\.primary/);
   rejects("LAST default not enabled", { last: { enabled: ["asra"], default: "aagbi" } }, /last\.default/);
   rejects("out-of-range default", { defaults: { lidoCap: 99999 } }, /defaults\.lidoCap/);
+  rejects("a change to the lipid bolus", { defaults: { bolus: 2 } }, /lipid rescue/);
+  rejects("a change to the lipid maximum", { defaults: { cap: 10 } }, /lipid rescue/);
+  rejects("an empty list of high BMI options", { bmiOptions: [] }, /bmiOptions/);
+  rejects("an unknown high BMI option", { bmiOptions: ["blend", "ibw"] }, /bmiOptions/);
+  rejects("a default high BMI option that is not offered", { bmiOptions: ["strict", "hold"] }, /default high-BMI option/);
   rejects("dose limit above 15 mg/kg", { agentOverrides: { lp1: { maxMgPerKg: 30 } } }, /maxMgPerKg/);
   rejects("concentration above 200 mg/ml", { addAgents: [{ id: "z2", name: "z", mgPerMl: 250, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);
   rejects("zero concentration", { addAgents: [{ id: "z1", name: "z", mgPerMl: 0, maxMgPerKg: 3, group: "z" }] }, /mgPerMl/);

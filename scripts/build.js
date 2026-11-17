@@ -24,6 +24,9 @@ const pkg = readJSON(path.join(ROOT, "package.json"));
 const LBW_FORMULAS = ["jan", "boer", "james", "hume", "peters"];
 const CENTILES = ["c91", "c98", "c996"];
 const LAST_GUIDELINES = ["aagbi", "asra"];
+const BMI_OPTIONS = ["blend", "strict", "hold"];
+// lipid rescue (LAST) doses follow the published guidelines: an organisation may not change them
+const LAST_FIXED = ["bolus", "inf", "mult", "cap"];
 // Bounds the app itself clamps to at runtime (keep in sync with BND in template.html)
 const BOUNDS = {
   bmi: [15, 60], lidoCap: [0.5, 30], cpMg: [0.5, 50], cpN: [1, 60],
@@ -56,6 +59,9 @@ function loadConfig(orgId) {
   const base = readJSON(path.join(ROOT, "src", "config.base.json"));
   const ops = { overrides: org.agentOverrides || {}, remove: org.removeAgents || [], add: org.addAgents || [] };
   delete org.agentOverrides; delete org.removeAgents; delete org.addAgents;
+  for (const k of LAST_FIXED)
+    if (org.defaults && k in org.defaults && org.defaults[k] !== base.defaults[k])
+      throw new Error(`defaults.${k}: lipid rescue (LAST) doses follow the published guideline and cannot be changed per organisation`);
   let cfg = merge(base, org);
   // agent operations apply on top of whichever agent list is in force
   let agents = cfg.agents.map((a) => ({ ...a }));
@@ -95,6 +101,13 @@ function validate(cfg) {
   if (!CENTILES.includes(d.pc)) bad(`defaults.pc must be one of ${CENTILES}`);
   if (typeof d.blend !== "boolean") bad("defaults.blend must be true or false");
   if (typeof d.hold !== "boolean") bad("defaults.hold must be true or false");
+  const bo = cfg.bmiOptions;
+  if (!Array.isArray(bo) || !bo.length || bo.some((x) => !BMI_OPTIONS.includes(x)) || new Set(bo).size !== bo.length)
+    bad(`bmiOptions must be a non-empty list drawn from ${BMI_OPTIONS}`);
+  else {
+    const dm = d.hold ? "hold" : d.blend ? "blend" : "strict";
+    if (!bo.includes(dm)) bad(`the default high-BMI option ("${dm}", from defaults.blend/defaults.hold) must be one of bmiOptions`);
+  }
   for (const [k, [lo, hi]] of Object.entries(BOUNDS))
     if (typeof d[k] !== "number" || !isFinite(d[k]) || d[k] < lo || d[k] > hi) bad(`defaults.${k} must be a number from ${lo} to ${hi}`);
   const ids = new Set();

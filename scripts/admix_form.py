@@ -27,8 +27,19 @@ DEFAULT_FORM = ROOT / "Admix-request-form.xlsx"
 
 LBW = {"jan": "Janmahasatian", "boer": "Boer", "james": "James", "hume": "Hume", "peters": "Peters"}
 CENT = {"c91": "91st", "c98": "98th", "c996": "99.6th"}
-LAST_SHOW = ["Both", "AAGBI only", "ASRA only"]
-LAST_FIRST = {"aagbi": "AAGBI", "asra": "ASRA"}
+QRH = "AoA QRH (AAGBI)"
+LAST_SHOW = ["Both", QRH + " only", "ASRA only"]
+LAST_FIRST = {"aagbi": QRH, "asra": "ASRA"}
+# older forms used these labels: still accepted when reading
+LAST_SHOW_OLD = {"aagbi only": ["aagbi"]}
+LAST_FIRST_OLD = {"aagbi": "aagbi"}
+HI = {"blend": "Blend to lean body weight", "strict": "Strict switch (SOBA)", "hold": "Hold at threshold weight"}
+ED = ["Enabled", "Disabled"]
+HI_LABELS = {"blend": "High BMI option: blend from total to lean body weight over 5 BMI points",
+             "strict": "High BMI option: strict switch to lean body weight (SOBA guideline)",
+             "hold": "High BMI option: hold the weight at the threshold BMI weight"}
+HI_DEFAULT = "High BMI option used by default"
+OLD_FORM_LABEL = "Use lean body weight at or above BMI"
 EXTRA_ROWS = 8  # empty rows for new drugs
 
 
@@ -40,25 +51,26 @@ def yn(b):
     return "Yes" if b else "No"
 
 
+def hi_mode(d):
+    return "hold" if d.get("hold") else "blend" if d.get("blend") else "strict"
+
+
 # (label, key path, kind, options)  -- label text is what the reader matches on
 def settings_rows():
     d, last = BASE["defaults"], BASE["last"]
     return [
         ("Lean body weight formula", "defaults.lbw", "map", LBW, LBW[d["lbw"]]),
-        ("Use lean body weight at or above BMI", "defaults.bmi", "num", None, d["bmi"]),
-        ("Blend gradually from total to lean body weight", "defaults.blend", "yn", None, yn(d["blend"])),
-        ("Instead hold the weight at the threshold BMI weight (overrides blend)", "defaults.hold", "yn", None, yn(d["hold"])),
+        ("Adults: default threshold for obesity (BMI)", "defaults.bmi", "num", None, d["bmi"]),
+    ] + [(HI_LABELS[k], "bmiOptions." + k, "ed", ED, "Enabled" if k in BASE["bmiOptions"] else "Disabled") for k in HI] + [
+        (HI_DEFAULT, "hi.default", "hi", HI, HI[hi_mode(d)]),
         ("Children: lean body weight formula", "defaults.lbwP", "map", LBW, LBW[d["lbwP"]]),
-        ("Children: obesity threshold (RCPCH BMI centile)", "defaults.pc", "map", CENT, CENT[d["pc"]]),
+        ("Children: default threshold for obesity (RCPCH BMI centile)", "defaults.pc", "map", CENT, CENT[d["pc"]]),
         ("Neonatal dose reduction (%) when age is 3 months or less", "defaults.neoRed", "num", None, d["neoRed"]),
         ("Airway lidocaine maximum (mg/kg lean body weight)", "defaults.lidoCap", "num", None, d["lidoCap"]),
         ("Co-phenylcaine lidocaine per spray (mg)", "defaults.cpMg", "num", None, d["cpMg"]),
         ("Co-phenylcaine sprays assumed if not stated", "defaults.cpN", "num", None, d["cpN"]),
         ("Lipid (LAST) guidelines to show", "last.enabled", "show", LAST_SHOW, "Both"),
         ("Lipid (LAST) guideline shown first", "last.default", "map", LAST_FIRST, LAST_FIRST[last["default"]]),
-        ("AAGBI bolus (ml/kg)", "defaults.bolus", "num", None, d["bolus"]),
-        ("AAGBI infusion (ml/kg/h)", "defaults.inf", "num", None, d["inf"]),
-        ("Maximum total lipid (ml/kg)", "defaults.cap", "num", None, d["cap"]),
     ]
 
 
@@ -165,8 +177,9 @@ def make(out):
 
     # 2 anaesthetics
     section(SECTIONS[1], "Edit values, clear the row of any drug you do not want, or add new drugs in the empty rows at the bottom. "
-                         "mg per ml: 1% = 10, 0.5% = 5. Prilocaine and chloroprocaine start switched off.")
-    for j_, h in enumerate(["Name", "mg per ml", "Maximum mg/kg", "In use?", "Notes (optional)"], start=1):
+                         "mg per ml: 1% = 10, 0.5% = 5. 'On by default?' Yes = switched on when the app opens; users can still switch any listed "
+                         "drug on or off in Expert settings. Prilocaine and chloroprocaine start switched off.")
+    for j_, h in enumerate(["Name", "mg per ml", "Maximum mg/kg", "On by default?", "Notes (optional)"], start=1):
         c = ws.cell(row=r, column=j_, value=h)
         c.fill, c.font, c.border = sub, Font(bold=True), BOX
     r += 1
@@ -195,7 +208,9 @@ def make(out):
     r += 1
 
     # 3 settings
-    section(SECTIONS[2], "Change any value in the yellow column. Leave a value as it is to keep the default.")
+    section(SECTIONS[2], "Change any value in the yellow column. Leave a value as it is to keep the default. High BMI options: "
+                         "choose which ones users may pick in Expert settings, and which one is used by default. "
+                         "Lipid rescue (LAST) doses follow the published guidelines and cannot be changed.")
     for j_, h in enumerate(["Setting", "Your value", "Default", "Choices"], start=1):
         c = ws.cell(row=r, column=j_, value=h)
         c.fill, c.font, c.border = sub, Font(bold=True), BOX
@@ -205,7 +220,7 @@ def make(out):
         c = ws.cell(row=r, column=2, value=dflt)
         c.fill, c.border = INPUT, BOX
         ws.cell(row=r, column=3, value=dflt).border = BOX
-        choices = list(opts.values()) if kind == "map" else list(opts) if kind == "show" else ["Yes", "No"] if kind == "yn" else None
+        choices = list(opts.values()) if kind in ("map", "hi") else list(opts) if kind in ("show", "ed") else ["Yes", "No"] if kind == "yn" else None
         ws.merge_cells(start_row=r, start_column=4, end_row=r, end_column=5)
         ws.cell(row=r, column=4, value=", ".join(choices) if choices else "a number").border = BOX
         if choices:
@@ -368,7 +383,7 @@ def read(path, org_id=None):
         if nm:
             mg, mk, use = sval(ws, r, 2), sval(ws, r, 3), (sval(ws, r, 4) or "").lower()
             if use not in ("yes", "no"):
-                errs.append(f"Anaesthetics row {r} ({nm}): 'In use?' must be Yes or No")
+                errs.append(f"Anaesthetics row {r} ({nm}): 'On by default?' must be Yes or No")
             mgv, mkv = num(mg, f"Anaesthetics row {r} ({nm}) mg per ml", errs), num(mk, f"Anaesthetics row {r} ({nm}) maximum mg/kg", errs)
             if mgv is not None and mgv <= 0:
                 errs.append(f"Anaesthetics row {r} ({nm}): mg per ml must be above 0")
@@ -412,7 +427,11 @@ def read(path, org_id=None):
     ws = W
     spec = {lab: (key, kind, opts, dflt) for lab, key, kind, opts, dflt in settings_rows()}
     rows = find_rows(ws, spec, srow[SECTIONS[2]], srow[SECTIONS[3]])
+    if HI_DEFAULT not in rows and find_rows(ws, [OLD_FORM_LABEL], srow[SECTIONS[2]], srow[SECTIONS[3]]):
+        raise SystemExit("this is an older version of the request form (before the high BMI options were added): "
+                         "please download the current form and fill it in again")
     defaults, last = {}, {}
+    hi_on, hi_def = {}, None
     for lab, (key, kind, opts, dflt) in spec.items():
         if lab not in rows:
             errs.append(f"Settings: row '{lab}' is missing")
@@ -434,20 +453,50 @@ def read(path, org_id=None):
                 out = None if out == BASE[sect][k] else out
         elif kind == "map":
             inv = {vv.lower(): kk for kk, vv in opts.items()}
+            if k == "default" and sect == "last":
+                inv.update(LAST_FIRST_OLD)
             kk = inv.get(str(v).lower())
             if kk is None:
                 errs.append(f"Settings '{lab}': '{v}' is not one of {', '.join(opts.values())}")
             else:
                 out = None if kk == BASE[sect][k] else kk
+        elif kind == "ed":
+            if str(v).lower() not in ("enabled", "disabled"):
+                errs.append(f"Settings '{lab}': choose Enabled or Disabled")
+            else:
+                hi_on[k] = str(v).lower() == "enabled"
+            continue
+        elif kind == "hi":
+            inv = {vv.lower(): kk for kk, vv in opts.items()}
+            hi_def = inv.get(str(v).lower())
+            if hi_def is None:
+                errs.append(f"Settings '{lab}': '{v}' is not one of {', '.join(opts.values())}")
+            continue
         elif kind == "show":
-            m = {"both": ["aagbi", "asra"], "aagbi only": ["aagbi"], "asra only": ["asra"]}.get(str(v).lower())
+            m = {"both": ["aagbi", "asra"], LAST_SHOW[1].lower(): ["aagbi"], "asra only": ["asra"], **LAST_SHOW_OLD}.get(str(v).lower())
             if m is None:
-                errs.append(f"Settings '{lab}': choose Both, AAGBI only or ASRA only")
+                errs.append(f"Settings '{lab}': choose {', '.join(LAST_SHOW)}")
             elif m != BASE["last"]["enabled"]:
                 last["enabled"] = m
             continue
         if out is not None:
             (defaults if sect == "defaults" else last)[k] = out
+    # high BMI options: which are offered, and the default (stored as defaults.blend / defaults.hold)
+    if len(hi_on) == len(HI):
+        on = [k for k in HI if hi_on[k]]
+        if not on:
+            errs.append("Settings: at least one high BMI option must be Enabled")
+        elif hi_def is not None:
+            if hi_def not in on:
+                errs.append(f"Settings: the high BMI option used by default ({HI[hi_def]}) must be one that is Enabled")
+            else:
+                if on != BASE["bmiOptions"]:
+                    cfg["bmiOptions"] = on
+                bd = BASE["defaults"]
+                want = {"blend": hi_def == "blend" or (hi_def == "hold" and bd["blend"]), "hold": hi_def == "hold"}
+                for kk, vv in want.items():
+                    if vv != bd[kk]:
+                        defaults[kk] = vv
     if defaults:
         cfg["defaults"] = defaults
     if "enabled" in last and "default" not in last and BASE["last"]["default"] not in last["enabled"]:

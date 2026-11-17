@@ -133,6 +133,44 @@ try:
     ok("generated config builds", r.returncode == 0, r.stderr)
     shutil.rmtree(d, ignore_errors=True)
     shutil.rmtree(ROOT / "dist" / "formtest", ignore_errors=True)
+    # 4b. high BMI options: offer only some, choose the default; lipid doses are not on the form
+    def form_with(**rowvals):
+        wb_ = load_workbook(F.DEFAULT_FORM)
+        w_ = wb_[F.SHEET]
+        fill(w_)
+        for lab, v in rowvals.items():
+            w_.cell(row=row_of(w_, lab, sec(w_, 2)), column=2).value = v
+        wb_.save(tmp / "f_hi.xlsx")
+        return tmp / "f_hi.xlsx"
+    _, cfg, _ = F.read(form_with(**{F.HI_LABELS["strict"]: "Disabled", F.HI_DEFAULT: F.HI["hold"]}))
+    ok("high BMI: strict switched off, hold by default", cfg.get("bmiOptions") == ["blend", "hold"] and cfg.get("defaults") == {"hold": True}, cfg)
+    d = ROOT / "orgs" / "hitest"
+    d.mkdir(parents=True, exist_ok=True)
+    cfg["org"]["id"] = "hitest"
+    (d / "config.json").write_text(json.dumps(cfg))
+    r = subprocess.run(["node", str(ROOT / "scripts" / "build.js"), "--org", "hitest"], capture_output=True, text=True)
+    ok("high BMI config builds", r.returncode == 0, r.stderr)
+    page = (ROOT / "dist" / "hitest" / "index.html").read_text(encoding="utf8") if r.returncode == 0 else ""
+    ok("the built page carries the offered options", '"bmiOptions":["blend","hold"]' in page)
+    shutil.rmtree(d, ignore_errors=True)
+    shutil.rmtree(ROOT / "dist" / "hitest", ignore_errors=True)
+    _, cfg, _ = F.read(form_with(**{F.HI_DEFAULT: F.HI["strict"]}))
+    ok("high BMI: strict (SOBA) by default", cfg.get("defaults") == {"blend": False} and "bmiOptions" not in cfg, cfg)
+    for lab, kw in [("default that is disabled is refused", {F.HI_LABELS["blend"]: "Disabled"}),
+                    ("all options disabled is refused", {F.HI_LABELS[k]: "Disabled" for k in F.HI})]:
+        try:
+            F.read(form_with(**kw))
+            ok("high BMI: " + lab, False)
+        except SystemExit:
+            ok("high BMI: " + lab, True)
+    labels = [str(ws.cell(row=r_, column=1).value or "") for r_ in range(1, ws.max_row + 1)]
+    ok("no lipid dose rows on the form", not any(("bolus" in l.lower() or "infusion" in l.lower() or "maximum total lipid" in l.lower()) for l in labels), labels)
+    ok("'On by default?' column", "On by default?" in [ws.cell(row=row_of(ws, "Name", sec(ws, 1)), column=c).value for c in range(1, 6)])
+    _, cfg, _ = F.read(form_with(**{"Lipid (LAST) guidelines to show": "AAGBI only"}))
+    ok("older 'AAGBI only' wording still accepted", cfg.get("last") == {"enabled": ["aagbi"]}, cfg.get("last"))
+    _, cfg, _ = F.read(form_with(**{"Lipid (LAST) guidelines to show": F.QRH + " only", "Lipid (LAST) guideline shown first": F.QRH}))
+    ok("AoA QRH (AAGBI) wording", cfg.get("last") == {"enabled": ["aagbi"]}, cfg.get("last"))
+
     # 5. short name -> id and title; wording is HTML-escaped
     wb = load_workbook(F.DEFAULT_FORM)
     ws = wb[F.SHEET]

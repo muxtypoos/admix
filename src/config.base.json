@@ -31,6 +31,8 @@
   "mult": 2,
   "cap": 12
  },
+ "_bmiOptions": "High-BMI choices offered in Expert settings (blend, strict = SOBA switch, hold). The default is set by defaults.blend / defaults.hold and must be one of these.",
+ "bmiOptions": ["blend", "strict", "hold"],
  "agents": [
   {
    "id": "lp1",

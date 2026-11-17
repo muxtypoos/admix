@@ -138,3 +138,8 @@ One-off setting needed: **Settings, Actions, General, Workflow permissions**: ch
 "Allow GitHub Actions to create and approve pull requests". Pull requests opened by the workflow do not trigger the normal
 `build-and-test` workflow, which is why the request workflow runs the full tests itself.
 Reserved ids (`default`, `example-hospital`) are refused. Wording from forms is HTML-escaped. Attachments over 2 MB are refused.
+
+## High BMI options and lipid rescue doses (organisation configs)
+
+- `bmiOptions` lists the high-BMI choices offered in Expert settings: `blend`, `strict` (SOBA switch to lean weight) and `hold` (weight held at the threshold BMI weight). At least one is required. The default is set by `defaults.blend` / `defaults.hold` (hold if `hold` is true, otherwise blend if `blend` is true, otherwise strict) and must be one of `bmiOptions`. On the request form these are the three "High BMI option" rows (Enabled/Disabled) and "High BMI option used by default".
+- Lipid rescue (LAST) doses (`defaults.bolus`, `inf`, `mult`, `cap`) follow the published guidelines. The builder refuses an organisation config that changes them, and they are not on the request form.
