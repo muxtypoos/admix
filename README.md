@@ -22,3 +22,9 @@ Use the free text box at the end of the form for anything else you need.
 Admix is decision support only. It does not replace clinical judgement or local policy. Every organisation must check its own doses and guidelines before using it with patients. The version and configuration code at the bottom of the app (for example `Admix v0.3.0-beta · default · ef222e02`) identify exactly which version you are using: please quote it in any feedback.
 
 [Changelog](CHANGELOG.md) · [For the developer](docs/MAINTAINING.md)
+
+## Licence
+
+© 2026 Dr George Lui. Free to use and share under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): credit the author, no commercial use without permission, and share any adaptations under the same licence. See [`LICENSE`](LICENSE).
+
+Not covered (third-party, owners' own terms): RCPCH BMI chart images (src/assets/rcpch-bmi-*.jpg) and centile data (src/data/), RCPCH copyright; LAST guideline images (src/assets/last-asra.jpg, last-qrh.jpg), copyright ASRA and the Association of Anaesthetists.
